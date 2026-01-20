@@ -15,58 +15,7 @@ import kotlin.comparisons.compareBy
 
 class GoogleVisionOcrService {
     fun extractLines(path: Path): List<String> {
-        return if (isPdf(path)) {
-            extractTextFromPdf(path)
-        } else {
-            extractTextFromImage(path)
-        }
-    }
-
-    private fun extractTextFromPdf(pdfPath: Path): List<String> {
-        val pdfBytes = Files.readAllBytes(pdfPath)
-
-        if (pdfBytes.isEmpty()) {
-            throw IllegalArgumentException("PDF file is empty or unreadable")
-        }
-
-        val inputConfig = InputConfig.newBuilder()
-            .setMimeType("application/pdf")
-            .setContent(ByteString.copyFrom(pdfBytes))
-            .build()
-
-        val feature = Feature.newBuilder()
-            .setType(Feature.Type.DOCUMENT_TEXT_DETECTION)
-            .build()
-
-        val request = AnnotateFileRequest.newBuilder()
-            .setInputConfig(inputConfig)
-            .addFeatures(feature)
-            .build()
-
-        val batchRequest = BatchAnnotateFilesRequest.newBuilder()
-                    .addRequests(request)   
-                    .build()
-
-        val extractedLines = ImageAnnotatorClient.create().use { client ->
-            val response = client.batchAnnotateFiles(batchRequest)
-
-            val fileResponse = response.responsesList.firstOrNull()
-                ?: return@use emptyList()
-
-            if (fileResponse.hasError()) {
-                throw RuntimeException("PDF OCR error: ${fileResponse.error.message}")
-            }
-
-            fileResponse.responsesList.flatMap { 
-                extractParagraphLines(it.fullTextAnnotation) 
-            }
-        }
-
-        return extractedLines.map { it.text }
-    }
-
-    private fun extractTextFromImage(imagePath: Path): List<String> {        
-        val imageBytes = Files.readAllBytes(imagePath)
+        val imageBytes = Files.readAllBytes(path)
 
         if (imageBytes.isEmpty()) {
             throw IllegalArgumentException("Image file is empty or unreadable")
@@ -94,12 +43,13 @@ class GoogleVisionOcrService {
                 throw RuntimeException("OCR error: ${annotation.error.message}")            
             }
 
-            extractParagraphLines(annotation.fullTextAnnotation)
+            extractImageLines(annotation.fullTextAnnotation)
         }
 
         return mergeLinesVisually(extractedLines)
     }
-    private fun extractParagraphLines(text: TextAnnotation): List<OcrLine> {
+
+    private fun extractImageLines(text: TextAnnotation): List<OcrLine> {
         return text.pagesList
             .flatMap{ it.blocksList }
             .flatMap { it.paragraphsList }
@@ -140,13 +90,11 @@ class GoogleVisionOcrService {
                 result.add(mutableListOf(line))
             }
         }
+
         return result.map{ row ->
             row
                 .sortedBy { it.centerX }
                 .joinToString(" ") { it.text } 
         }
     }
-
-    private fun isPdf(path: Path): Boolean = 
-        path.fileName.toString().lowercase().endsWith(".pdf")
 }
