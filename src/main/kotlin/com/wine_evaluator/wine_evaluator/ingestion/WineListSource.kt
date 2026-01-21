@@ -18,7 +18,7 @@ private val IMAGE_EXTENSIONS = setOf(
     "gif"
 )
 
-fun detectSource(path: Path): WineListSource {
+fun determineWineListSource(path: Path): WineListSource {
     val extension = path.fileName
         ?.toString()
         ?.substringAfterLast('.', missingDelimiterValue = "")

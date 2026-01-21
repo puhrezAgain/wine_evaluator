@@ -2,7 +2,7 @@ package com.wine_evaluator.wine_evaluator
 
 import java.nio.file.Paths
 import com.wine_evaluator.wine_evaluator.ocr.parseImage
-import com.wine_evaluator.wine_evaluator.ingestion.detectSource
+import com.wine_evaluator.wine_evaluator.ingestion.determineWineListSource
 import com.wine_evaluator.wine_evaluator.ingestion.WineListSource
 import com.wine_evaluator.wine_evaluator.ingestion.parsePDF
 import com.wine_evaluator.wine_evaluator.interpretation.processRow
@@ -24,7 +24,7 @@ fun main(args: Array<String>) {
     // queue parse request
 
     // worker then does
-    val lines = when (detectSource(path)) {
+    val lines = when (determineWineListSource(path)) {
         WineListSource.OCR ->
             parseImage(path)
         WineListSource.PDF_TEXT ->
