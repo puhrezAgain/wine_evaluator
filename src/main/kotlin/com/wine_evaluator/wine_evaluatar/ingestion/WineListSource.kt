@@ -18,14 +18,14 @@ private val IMAGE_EXTENSIONS = setOf(
     "gif"
 )
 
-fun detectSource(path: Path): WineListSource { 
+fun detectSource(path: Path): WineListSource {
     val extension = path.fileName
         ?.toString()
         ?.substringAfterLast('.', missingDelimiterValue = "")
         ?.lowercase()
-    
+
     return when {
-        extension == "pdf" -> 
+        extension == "pdf" ->
             WineListSource.PDF_TEXT
         extension in IMAGE_EXTENSIONS ->
             WineListSource.OCR
