@@ -8,10 +8,16 @@ import com.google.cloud.vision.v1.AnnotateFileRequest
 import com.google.cloud.vision.v1.BatchAnnotateFilesRequest
 import com.google.cloud.vision.v1.TextAnnotation
 import com.google.protobuf.ByteString
-import com.wine_evaluator.wine_evaluator.ocr.OcrLine
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.comparisons.compareBy
+
+data class OcrLine(
+    val text: String,
+    val centerX: Float,
+    val baselineY: Float,
+    val confidence: Float
+)
 
 fun parseImage(path: Path): List<String> {
     val imageBytes = Files.readAllBytes(path)

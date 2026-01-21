@@ -18,14 +18,25 @@ fun main(args: Array<String>) {
 
     println("Running on: $path")
 
+    // receieve a file via http
+    // store raw data to local or cloud
+    // persist upload request
+    // queue parse request
+
+    // worker then does
     val lines = when (detectSource(path)) {
         WineListSource.OCR ->
             parseImage(path)
         WineListSource.PDF_TEXT ->
             parsePDF(path)
     }
+    // persist raw lines all together associated with each upload
+    val tokenizedRows =
+        lines
+            .mapNotNull { processRow(it) }
 
-    println("====== OCR RESULT =======")
-    lines
-        .forEach{ println(processRow(it))}
+    // store each identityToken associated with the upload
+    // store each priceToken associated with each identity
+
+    tokenizedRows.forEach(::println)
 }
