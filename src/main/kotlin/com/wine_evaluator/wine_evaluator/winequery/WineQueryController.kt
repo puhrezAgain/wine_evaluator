@@ -5,14 +5,20 @@ import com.wine_evaluator.wine_evaluator.interpretation.WineTokenizer
 
 @RestController
 @RequestMapping("/wine")
-class WineQueryController{
+class WineQueryController(
+    private val service: WineQueryService
+){
 
     @PostMapping("/query")
     fun query(@RequestBody request: WineQueryRequest): WineQueryResponse {
         val tokens = request.wine
             .let(WineTokenizer::tokenize)
             .let(WineTokenizer::toIdentitySet)
+        val matches = service.query(tokens, request.price.toInt())
 
-        return WineQueryResponse(request.wine, request.price, tokens)
+        return WineQueryResponse(
+            original = request.wine,
+            queryPrice = request.price,
+            matches = matches)
     }
 }
