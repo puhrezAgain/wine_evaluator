@@ -16,11 +16,10 @@ class UploadHandler(
     private val parseQueue: DocumentProcessingQueue,
     private val pipeline: DocumentProcessingPipeline
 ) {
-    fun handleUpload(file: MultipartFile): DocumentFile {
-        val upload = storage.store(file)
-
-        // parseQueue.enqueue(uploadId)
-        pipeline.process(upload)
-        return upload
+    fun handleDocument(file: MultipartFile): DocumentFile {
+        val document = storage.store(file)
+        println("SDASDASDA")
+        parseQueue.enqueue(document)
+        return document
     }
 }
