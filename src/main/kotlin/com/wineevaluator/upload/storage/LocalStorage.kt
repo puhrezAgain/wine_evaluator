@@ -7,7 +7,7 @@ import java.time.Instant
 import java.nio.file.Path
 import java.util.UUID
 import com.wineevaluator.common.value.UploadId
-import com.wineevaluator.upload.UploadedFile
+import com.wineevaluator.document.model.DocumentFile
 
 @Component
 class LocalStorage: UploadStorage {
@@ -17,7 +17,7 @@ class LocalStorage: UploadStorage {
         baseDir.mkdirs()
     }
 
-    override fun store(file: MultipartFile): UploadedFile {
+    override fun store(file: MultipartFile): DocumentFile {
         val uploadId = UploadId(UUID.randomUUID())
 
         val dir = File(baseDir, uploadId.value.toString()).apply { mkdirs() }
@@ -29,7 +29,7 @@ class LocalStorage: UploadStorage {
             }
         }
 
-        return UploadedFile(
+        return DocumentFile(
             id = uploadId,
             filename = file.originalFilename ?: "upload",
             path = target.toPath(),

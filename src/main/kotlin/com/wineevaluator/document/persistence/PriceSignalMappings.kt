@@ -3,7 +3,7 @@ package com.wineevaluator.document.persistence
 import com.wineevaluator.document.model.PriceSignal
 import com.wineevaluator.common.value.UploadId
 
-fun DocumentPriceSignalEntity.toDomain(): PriceSignal =
+internal fun DocumentPriceSignalEntity.toDomain(): PriceSignal =
     PriceSignal(
         uploadId = UploadId(uploadId),
         tokens = identityTokens,
@@ -11,7 +11,7 @@ fun DocumentPriceSignalEntity.toDomain(): PriceSignal =
         rawLine = rawRow,
     )
 
-fun PriceSignal.toEntity(): DocumentPriceSignalEntity =
+internal fun PriceSignal.toEntity(): DocumentPriceSignalEntity =
     DocumentPriceSignalEntity(
         uploadId = uploadId.value,
         identityTokens = tokens,

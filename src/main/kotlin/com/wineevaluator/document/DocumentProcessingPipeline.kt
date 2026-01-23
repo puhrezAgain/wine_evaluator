@@ -3,7 +3,7 @@ import org.springframework.stereotype.Component
 import com.wineevaluator.document.ingestion.DocumentParser
 import com.wineevaluator.document.interpretation.LineInterpreter
 import com.wineevaluator.document.persistence.PriceSignalWriter
-import com.wineevaluator.upload.UploadedFile
+import com.wineevaluator.document.model.DocumentFile
 
 @Component
 class DocumentProcessingPipeline(
@@ -11,7 +11,7 @@ class DocumentProcessingPipeline(
     private val interpreter: LineInterpreter,
     private val writer: PriceSignalWriter
 ){
-    fun process(file: UploadedFile) {
+    fun process(file: DocumentFile) {
         val lines = parser.parse(file)
 
         val signals = lines
