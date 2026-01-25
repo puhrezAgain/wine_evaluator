@@ -4,7 +4,6 @@ import com.wineevaluator.analysis.model.AnalysisId
 import com.wineevaluator.analysis.model.AnalysisResultView
 import com.wineevaluator.analysis.model.AnalysisStatus
 import com.wineevaluator.analysis.persistence.AnalysisRepository
-import com.wineevaluator.common.value.UploadId
 import com.wineevaluator.wine.WineQueryHandler
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
@@ -34,7 +33,7 @@ class AnalysisReader(
 
             AnalysisStatus.DONE -> {
                 wineQuerier
-                    .queryUpload(id.toUploadId())
+                    .queryByUploadId(id.toUploadId())
                     .let { AnalysisResultView.Done(id, it) }
             }
         }

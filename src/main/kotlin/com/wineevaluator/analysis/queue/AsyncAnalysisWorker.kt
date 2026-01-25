@@ -7,7 +7,7 @@ import com.wineevaluator.document.model.DocumentFile
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import javax.print.Doc
+
 
 @Component
 class AsyncAnalysisWorker(

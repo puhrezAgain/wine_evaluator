@@ -5,9 +5,7 @@ import com.wineevaluator.document.model.DocumentFile
 import org.springframework.stereotype.Component
 import java.io.File
 import java.io.InputStream
-import java.nio.file.Path
 import java.time.Instant
-import java.util.UUID
 
 @Component
 class LocalStorage : UploadStorage {

@@ -9,6 +9,8 @@ import com.wineevaluator.wine.matching.hybridScore
 import com.wineevaluator.wine.model.WineMatch
 import org.springframework.stereotype.Service
 
+private const val MIN_MATCH_SCORE = 0.55
+
 @Service
 class WineQueryHandler(
     private val repository: JpaPriceSignalRepository,
@@ -31,8 +33,10 @@ class WineQueryHandler(
             .sortedByDescending { it.jaccard }
     }
 
-    fun queryUpload(id: UploadId): List<WineMatch> {
+    fun queryByUploadId(id: UploadId): List<WineMatch> {
         val signals = repository.findByUploadId(id)
+
+        if (signals.isEmpty()) return emptyList()
 
         val allTokens =
             signals
@@ -60,13 +64,13 @@ class WineQueryHandler(
         signal: PriceSignal,
         tokens: Set<String>,
         price: Int,
-        minScore: Double = 0.55,
+        minScore: Double = MIN_MATCH_SCORE,
     ): WineMatch? {
         val score = hybridScore(tokens, signal.tokens)
 
         if (score < minScore) return null
 
-        // use max assuming bottle price
+        // assuming max leads us to bottle price
         val refPrice = signal.prices.maxOrNull() ?: return null
 
         if (refPrice == 0) return null

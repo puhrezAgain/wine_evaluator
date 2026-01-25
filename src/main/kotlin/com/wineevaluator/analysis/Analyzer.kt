@@ -3,21 +3,17 @@ package com.wineevaluator.analysis
 import com.wineevaluator.analysis.model.AnalysisId
 import com.wineevaluator.analysis.model.AnalysisRecord
 import com.wineevaluator.analysis.model.AnalysisResponse
-import com.wineevaluator.analysis.model.AnalysisStatus
 import com.wineevaluator.analysis.persistence.JpaAnalysisRepository
 import com.wineevaluator.analysis.queue.AsyncAnalysisWorker
-import com.wineevaluator.common.value.UploadId
 import com.wineevaluator.upload.storage.LocalStorage
 import com.wineevaluator.wine.WineQueryHandler
 import com.wineevaluator.wine.model.WineQueryRequest
 import com.wineevaluator.wine.model.WineQueryResponse
-import com.zaxxer.hikari.metrics.IMetricsTracker
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
-import java.util.UUID
 
 @Service
 class Analyzer(

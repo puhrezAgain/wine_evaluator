@@ -1,14 +1,9 @@
 package com.wineevaluator.analysis
 
-import com.google.api.Http
 import com.wineevaluator.analysis.model.AnalysisId
-import com.wineevaluator.analysis.model.AnalysisRecord
 import com.wineevaluator.analysis.model.AnalysisResponse
 import com.wineevaluator.analysis.model.AnalysisResultView
-import com.wineevaluator.analysis.model.AnalysisStatus
-import com.wineevaluator.document.model.DocumentFile
 import com.wineevaluator.wine.model.WineQueryRequest
-import com.wineevaluator.wine.model.WineQueryResponse
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -20,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
-import java.util.UUID
 
 @RestController
 @RequestMapping("/analysis")
