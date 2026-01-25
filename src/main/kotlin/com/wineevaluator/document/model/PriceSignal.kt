@@ -6,5 +6,5 @@ data class PriceSignal(
     val uploadId: UploadId,
     val tokens: Set<String>,
     val prices: List<Int>,
-    val rawLine: String
+    val rawLine: String,
 )

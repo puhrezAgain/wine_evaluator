@@ -10,5 +10,5 @@ data class WineMatch(
     val delta: Int,
     val deltaPercent: Double,
     val matchTokens: Set<String>,
-    val tokens: Set<String>
+    val tokens: Set<String>,
 )

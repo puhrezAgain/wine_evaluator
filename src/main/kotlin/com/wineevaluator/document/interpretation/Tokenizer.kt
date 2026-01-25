@@ -2,13 +2,15 @@ package com.wineevaluator.document.interpretation
 
 import com.wineevaluator.common.value.UploadId
 
-fun tokenizeLine(uploadId: UploadId, input: String): TokenizedLine {
-    return TokenizedLine(
+fun tokenizeLine(
+    uploadId: UploadId,
+    input: String,
+): TokenizedLine =
+    TokenizedLine(
         uploadId = uploadId,
         tokens = tokenize(input),
-        raw = input
+        raw = input,
     )
-}
 
 fun tokenize(input: String): List<String> =
     Regex("""[A-Za-zÀ-ÿ0-9]+""")
@@ -25,13 +27,12 @@ private fun normalize(row: String): String =
 
 fun toIdentitySet(input: List<String>): Set<String> =
     input
-        .map(::normalizeIndentity)
+        .map(::normalizeIdentity)
         .filter { it.length >= 3 }
         .toSet()
 
-private fun normalizeIndentity(token: String): String =
+private fun normalizeIdentity(token: String): String =
     token
         .uppercase()
         .replace(Regex("[’'`´]"), "")
         .replace(Regex("[^A-Z0-9]"), "")
-

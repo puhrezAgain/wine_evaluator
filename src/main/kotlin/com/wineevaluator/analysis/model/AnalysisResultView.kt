@@ -2,26 +2,20 @@ package com.wineevaluator.analysis.model
 
 import com.wineevaluator.wine.model.WineMatch
 
-sealed interface AnalysisResultView{
+sealed interface AnalysisResultView {
     val id: AnalysisId
 
     data class Pending(
-        override val id: AnalysisId
+        override val id: AnalysisId,
     ) : AnalysisResultView
 
     data class Failed(
         override val id: AnalysisId,
-        val error: String?
+        val error: String?,
     ) : AnalysisResultView
 
     data class Done(
         override val id: AnalysisId,
-        val results: List<WineMatch>
+        val results: List<WineMatch>,
     ) : AnalysisResultView
-
-    companion object {
-        fun pending(id: AnalysisId) = Pending(id)
-        fun failed(id: AnalysisId, error: String?) = Failed(id, error)
-        fun done(id: AnalysisId, results: List<WineMatch>) = Done(id, results)
-    }
 }

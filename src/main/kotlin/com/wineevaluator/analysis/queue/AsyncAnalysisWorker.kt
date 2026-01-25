@@ -1,36 +1,33 @@
 package com.wineevaluator.analysis.queue
 
+import com.wineevaluator.analysis.model.AnalysisId
+import com.wineevaluator.analysis.persistence.JpaAnalysisRepository
+import com.wineevaluator.document.DocumentProcessingPipeline
+import com.wineevaluator.document.model.DocumentFile
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-
-import com.wineevaluator.document.model.DocumentFile
-import com.wineevaluator.document.DocumentProcessingPipeline
-import com.wineevaluator.analysis.model.AnalysisId
-import com.wineevaluator.analysis.persistence.JpaAnalysisRepository
-
-
+import javax.print.Doc
 
 @Component
-class AsyncAnalysisWorker (
+class AsyncAnalysisWorker(
     private val pipeline: DocumentProcessingPipeline,
     private val analysisRepository: JpaAnalysisRepository,
-)  : DocumentProcessingQueue {
-
+) : DocumentProcessingQueue {
     @Async
-    @Transactional
     override fun enqueue(documentFile: DocumentFile) {
+        process(documentFile)
+    }
+
+    @Transactional
+    internal fun process(documentFile: DocumentFile) {
         val id = AnalysisId(documentFile.id.value)
 
         try {
-            println("QUEUE QUEUE QUEUE")
             pipeline.process(documentFile)
             analysisRepository.markDone(id)
-            println("DONE DONE DONE")
         } catch (e: Exception) {
-            println("FAIL FAIL FAIL")
             analysisRepository.markFailed(id, e.message ?: "Processing failed")
         }
     }
-
 }

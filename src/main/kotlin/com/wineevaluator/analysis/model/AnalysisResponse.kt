@@ -2,8 +2,12 @@ package com.wineevaluator.analysis.model
 
 import com.wineevaluator.wine.model.WineQueryResponse
 
-data class AnalysisResponse(
-    val record: AnalysisRecord? = null,
-    val results: WineQueryResponse? = null
-)
+sealed interface AnalysisResponse {
+    data class AnalysisStarted(
+        val record: AnalysisRecord,
+    ) : AnalysisResponse
 
+    data class AnalysisImmediate(
+        val results: WineQueryResponse,
+    ) : AnalysisResponse
+}

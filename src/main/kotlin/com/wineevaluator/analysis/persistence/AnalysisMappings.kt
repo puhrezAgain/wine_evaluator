@@ -7,5 +7,5 @@ fun AnalysisStatusEntity.toRecord(): AnalysisRecord =
     AnalysisRecord(
         id = AnalysisId(id),
         status = status,
-        error = error
+        error = error,
     )
