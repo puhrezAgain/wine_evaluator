@@ -1,14 +1,15 @@
 package com.wineevaluator.upload.storage
 
-import org.springframework.web.multipart.MultipartFile
-import java.nio.file.Path
-import java.util.UUID
+import java.io.InputStream
+import com.wineevaluator.common.value.UploadId
 
 import com.wineevaluator.document.model.DocumentFile
 
 
 interface UploadStorage {
     fun store(
-        file: MultipartFile
+        input: InputStream,
+        uploadId: UploadId,
+        filename: String
     ): DocumentFile
 }

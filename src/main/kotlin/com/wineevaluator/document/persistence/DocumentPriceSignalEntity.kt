@@ -5,7 +5,15 @@ import jakarta.persistence.*
 import java.util.UUID
 
 @Entity
-@Table(name = "document_price_signal")
+@Table(
+    name = "document_price_signal",
+    indexes = [
+        Index(
+            name = "idx_price_signal_upload_id",
+            columnList = "upload_id"
+        ),
+    ]
+)
 class DocumentPriceSignalEntity(
 
     @Id
@@ -19,7 +27,13 @@ class DocumentPriceSignalEntity(
     @ElementCollection
     @CollectionTable(
         name = "document_price_signal_token",
-        joinColumns = [JoinColumn(name = "signal_id")]
+        joinColumns = [JoinColumn(name = "signal_id")],
+        indexes = [
+            Index(
+                name = "idx_signal_token_token_signal",
+                columnList = "token, signal_id"
+            )
+        ]
     )
     @Column(name = "token", nullable = false)
     val identityTokens: Set<String>,

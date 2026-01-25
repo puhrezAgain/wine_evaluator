@@ -1,10 +1,10 @@
-package com.wineevaluator.upload.queue
+package com.wineevaluator.analysis.queue
 
 import org.springframework.stereotype.Component
 import com.wineevaluator.document.model.DocumentFile
-import java.util.UUID
+import com.wineevaluator.analysis.model.AnalysisId
 
 @Component
 interface DocumentProcessingQueue {
-    fun enqueue(DocumentFile: DocumentFile)
+    fun enqueue(documentFile: DocumentFile)
 }
