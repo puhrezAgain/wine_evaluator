@@ -37,6 +37,7 @@ class WineQueryHandler(
                     .mapNotNull{ candidate ->
                         calculateMatch(candidate, signal.tokens, signal.prices.max())
                     }
+                    .sortedByDescending { it.jaccard }
                     .first()
             }
     }
