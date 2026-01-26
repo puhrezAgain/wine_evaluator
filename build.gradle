@@ -7,6 +7,7 @@ plugins {
 	id 'org.springframework.boot' version '4.0.2'
 	id 'io.spring.dependency-management' version '1.1.7'
 	id 'org.jetbrains.kotlin.plugin.jpa' version '2.2.21'
+	id "jacoco"
 	id 'application'
 }
 
@@ -63,6 +64,10 @@ allOpen {
 	annotation 'jakarta.persistence.Embeddable'
 }
 
+jacoco {
+    toolVersion = "0.8.11"
+}
+
 tasks.test {
     useJUnitPlatform()
 
@@ -79,6 +84,45 @@ tasks.test {
         showStackTraces = true
 
         showStandardStreams = true
+    }
+
+	finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+
+    reports {
+        html.required = true
+        xml.required = true
+        csv.required = false
+    }
+
+	afterEvaluate {
+        classDirectories.setFrom(
+            files(classDirectories.files.collect {
+                fileTree(dir: it, exclude: [
+                    "**/*Application*",
+                    "**/*Config*",
+                    "**/*Entity*",
+                    "**/*Dto*",
+                    "**/*Request*",
+                    "**/*Response*",
+					"**/*Repository*",
+                    "**/*Jpa*",
+                    "**/*Storage*",
+                    "**/*Ocr*",
+                    "**/*Parser*",
+                    "**/*Mappings*",
+                    "**/*Dto*",
+                    "**/*Worker*",
+                    "**/*TokenizedLine*",
+                    "**/*Controller*",
+                    "**/*Entity*",
+                    "**/*Kt.class", // synthetic Kotlin files
+                ])
+            })
+        )
     }
 }
 

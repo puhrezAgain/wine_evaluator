@@ -1,7 +1,7 @@
 package com.wineevaluator.analysis
+
 import io.mockk.*
 import com.wineevaluator.analysis.queue.AsyncAnalysisWorker
-
 import com.wineevaluator.analysis.persistence.JpaAnalysisRepository
 import com.wineevaluator.analysis.model.AnalysisResponse
 import com.wineevaluator.analysis.model.AnalysisStatus

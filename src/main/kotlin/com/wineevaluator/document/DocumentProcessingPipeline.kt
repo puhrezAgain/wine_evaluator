@@ -17,12 +17,16 @@ class DocumentProcessingPipeline(
     fun process(file: DocumentFile) {
         val lines = parser.parse(file)
 
+        if (lines.isEmpty()) return
+
         log.debug("document.parsed lines={} uploadId={}", lines.size, file.id.value)
 
         val signals =
             lines
                 .map { interpreter.interpret(file.id, it) }
                 .filterNotNull()
+
+        if (signals.isEmpty()) return
 
         log.debug("document.interpreted signals={} uploadId={}", signals.size, file.id.value)
 
