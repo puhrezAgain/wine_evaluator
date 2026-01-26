@@ -68,7 +68,7 @@ class Analyzer(
         }
 
         if (file.isEmpty()) {
-            throw ValidationException( "Empty file")
+            throw ValidationException("Empty file")
         }
     }
 }

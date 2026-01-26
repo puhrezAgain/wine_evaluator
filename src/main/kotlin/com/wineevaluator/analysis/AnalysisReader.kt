@@ -21,19 +21,19 @@ class AnalysisReader(
                 ?: throw NotFoundException("Analysis not found: $id")
 
         return when (record.status) {
-            AnalysisStatus.PENDING -> {
+            AnalysisStatus.PENDING ->
                 AnalysisResultView.Pending(id)
-            }
 
-            AnalysisStatus.FAILED -> {
+
+            AnalysisStatus.FAILED ->
                 AnalysisResultView.Failed(id, record.error)
-            }
 
-            AnalysisStatus.DONE -> {
+
+            AnalysisStatus.DONE ->
                 wineQuerier
                     .queryByUploadId(id.toUploadId())
                     .let { AnalysisResultView.Done(id, it) }
-            }
+
         }
     }
 }
