@@ -119,12 +119,42 @@ tasks.jacocoTestReport {
                     "**/*TokenizedLine*",
                     "**/*Controller*",
                     "**/*Entity*",
+                    "**/*\$Companion.class",
+                    "**/*\$*inlined*.class",
+                    "**/model/**",
+                    "**/value/**",
                     "**/*Kt.class", // synthetic Kotlin files
                 ])
             })
         )
     }
 }
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = "LINE"
+                minimum = 0.6
+            }
+        }
+
+        // Core domain logic must stay well tested
+        rule {
+            element = 'PACKAGE'
+            includes = [
+                'com.wineevaluator.wine.*',
+                'com.wineevaluator.document.interpretation.*'
+            ]
+            limit {
+                counter = 'LINE'
+                minimum = 0.85
+            }
+        }
+    }
+}
+check.dependsOn jacocoTestCoverageVerification
+
 
 application {
     mainClass = 'com.wineevaluator.WineEvaluatorApplicationKt'
