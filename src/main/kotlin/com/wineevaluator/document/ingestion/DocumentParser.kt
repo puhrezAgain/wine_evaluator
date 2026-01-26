@@ -8,12 +8,10 @@ import org.springframework.stereotype.Component
 class DocumentParser {
     fun parse(file: DocumentFile): List<String> =
         when (determineWineListSource(file.path)) {
-            WineListSource.OCR -> {
+            WineListSource.OCR ->
                 parseImage(file.path)
-            }
 
-            WineListSource.PDF_TEXT -> {
+            WineListSource.PDF_TEXT ->
                 parsePDF(file.path)
-            }
         }
 }

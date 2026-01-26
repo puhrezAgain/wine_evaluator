@@ -1,6 +1,7 @@
 package com.wineevaluator.document.ingestion
 
 import java.nio.file.Path
+import com.wineevaluator.common.error.ValidationException
 
 enum class WineListSource {
     PDF_TEXT,
@@ -36,11 +37,11 @@ fun determineWineListSource(path: Path): WineListSource {
         }
 
         extension.isNullOrEmpty() -> {
-            throw IllegalArgumentException("File has no extension: $path")
+            throw ValidationException("File has no extension: $path")
         }
 
         else -> {
-            throw IllegalArgumentException("Unsupported file type: $extension")
+            throw ValidationException("Unsupported file type: $extension")
         }
     }
 }

@@ -9,9 +9,12 @@ import com.google.cloud.vision.v1.ImageAnnotatorClient
 import com.google.cloud.vision.v1.InputConfig
 import com.google.cloud.vision.v1.TextAnnotation
 import com.google.protobuf.ByteString
+import com.wineevaluator.common.error.ValidationException
+import com.wineevaluator.common.error.ProcessingException
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.comparisons.compareBy
+
 
 data class OcrLine(
     val text: String,
@@ -26,7 +29,7 @@ fun parseImage(path: Path): List<String> {
     val imageBytes = Files.readAllBytes(path)
 
     if (imageBytes.isEmpty()) {
-        throw IllegalArgumentException("Image file is empty or unreadable")
+        throw ValidationException("Image file is empty or unreadable")
     }
 
     val image =
@@ -56,7 +59,7 @@ fun parseImage(path: Path): List<String> {
                     ?: return@use emptyList()
 
             if (annotation.hasError()) {
-                throw RuntimeException("OCR error: ${annotation.error.message}")
+                throw ProcessingException("OCR error: ${annotation.error.message}")
             }
 
             extractImageLines(annotation.fullTextAnnotation)

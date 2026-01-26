@@ -9,6 +9,7 @@ import com.wineevaluator.upload.storage.LocalStorage
 import com.wineevaluator.wine.WineQueryHandler
 import com.wineevaluator.wine.model.WineQueryRequest
 import com.wineevaluator.wine.model.WineQueryResponse
+import com.wineevaluator.common.error.ValidationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
@@ -51,39 +52,23 @@ class Analyzer(
 
     private fun validateQuery(query: WineQueryRequest) {
         if (query.wine.isEmpty()) {
-            throw ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "No wine specified",
-            )
+            throw ValidationException("Wine name must not be empty")
         }
 
         if (query.price <= 0) {
-            throw ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "Price must be positive",
-            )
+            throw ValidationException("Price must be positive")
         }
     }
 
     private fun validateFile(file: MultipartFile) {
         val type =
-            file.contentType ?: throw ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "Missing Content-Type",
-            )
-
+            file.contentType ?: throw ValidationException("Missing Content-Type head")
         if (!(type.startsWith("image/") || type == MediaType.APPLICATION_PDF_VALUE)) {
-            throw ResponseStatusException(
-                HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-                "Only images or PDFs allowed",
-            )
+            throw ValidationException("Only images or PDFs allowed")
         }
 
         if (file.isEmpty()) {
-            throw ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "Empty file",
-            )
+            throw ValidationException( "Empty file")
         }
     }
 }
