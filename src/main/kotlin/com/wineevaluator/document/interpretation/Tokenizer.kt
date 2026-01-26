@@ -1,6 +1,9 @@
 package com.wineevaluator.document.interpretation
 
+import java.text.Normalizer
 import com.wineevaluator.common.value.UploadId
+
+private const val MIN_IDENTITY_TOKEN_LEN = 3
 
 fun tokenizeLine(
     uploadId: UploadId,
@@ -25,14 +28,15 @@ private fun normalize(row: String): String =
         .replace(Regex("\\s+"), " ")
         .trim()
 
-fun toIdentitySet(input: List<String>): Set<String> =
+fun toIdentityTokens(input: List<String>): Set<String> =
     input
         .map(::normalizeIdentity)
-        .filter { it.length >= 3 }
+        .filter { it.length >= MIN_IDENTITY_TOKEN_LEN }
         .toSet()
 
 private fun normalizeIdentity(token: String): String =
-    token
+    Normalizer.normalize(token, Normalizer.Form.NFD)
+        .replace(Regex("\\p{InCombiningDiacriticalMarks}+"), "")
         .uppercase()
         .replace(Regex("[’'`´]"), "")
         .replace(Regex("[^A-Z0-9]"), "")

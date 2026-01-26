@@ -3,6 +3,10 @@ package com.wineevaluator.document.interpretation
 import com.wineevaluator.common.value.UploadId
 import com.wineevaluator.document.model.PriceSignal
 import org.springframework.stereotype.Component
+import java.time.Year
+
+private const val MIN_ALLOWED_YEAR = 1950
+private val MAX_ALLOWED_YEAR = Year.now().value
 
 @Component
 class LineInterpreter {
@@ -19,7 +23,7 @@ class LineInterpreter {
 
         val identitySet =
             identityTokens
-                .let(::toIdentitySet)
+                .let(::toIdentityTokens)
 
         return PriceSignal(
             uploadId = uploadId,
@@ -29,12 +33,15 @@ class LineInterpreter {
         )
     }
 
-    private fun parsePriceToken(token: String): Int? {
-        val digitsOnly = token.replace(Regex("[^0-9.,]"), "")
-        val split = digitsOnly.split(',', '.')
+    private fun parsePriceToken(token: String): Int? =
+        token
+            .replace(Regex("[^0-9.,]"), "")
+            .split(',', '.')
+            .firstOrNull()
+            ?.toIntOrNull()
 
-        return split.firstOrNull()?.toIntOrNull()
-    }
+    private fun isYearToken(token: String): Boolean =
+        token.toIntOrNull()?.let{ it in MIN_ALLOWED_YEAR..MAX_ALLOWED_YEAR } == true
 
     private fun isNumericToken(token: String): Boolean =
         token.any { it.isDigit() } &&
@@ -44,7 +51,10 @@ class LineInterpreter {
         val priceTokens = mutableListOf<Int?>()
         val identityTokens = tokens.toMutableList()
 
-        while (identityTokens.lastOrNull()?.let(::isNumericToken) == true) {
+        while (
+            identityTokens.lastOrNull()?.let(::isNumericToken) == true &&
+            identityTokens.lastOrNull()?.let(::isYearToken) == false
+        ) {
             priceTokens.add(
                 0,
                 identityTokens.removeLast().let(::parsePriceToken),

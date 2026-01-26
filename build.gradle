@@ -1,3 +1,6 @@
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+
 plugins {
 	id 'org.jetbrains.kotlin.jvm' version '2.2.21'
 	id 'org.jetbrains.kotlin.plugin.spring' version '2.2.21'
@@ -35,6 +38,9 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+	testImplementation 'io.mockk:mockk:1.13.10'
+	testImplementation 'org.awaitility:awaitility:4.2.0'
+
 	testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
@@ -56,8 +62,23 @@ allOpen {
 	annotation 'jakarta.persistence.Embeddable'
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
+tasks.test {
+    useJUnitPlatform()
+
+    testLogging {
+        events(
+            TestLogEvent.FAILED,
+            TestLogEvent.SKIPPED,
+            TestLogEvent.PASSED,
+        )
+
+        exceptionFormat = TestExceptionFormat.FULL
+        showCauses = true
+        showExceptions = true
+        showStackTraces = true
+
+        showStandardStreams = true
+    }
 }
 
 application {

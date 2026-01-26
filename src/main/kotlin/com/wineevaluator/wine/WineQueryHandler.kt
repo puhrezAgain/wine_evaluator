@@ -1,7 +1,7 @@
 package com.wineevaluator.wine
 
 import com.wineevaluator.common.value.UploadId
-import com.wineevaluator.document.interpretation.toIdentitySet
+import com.wineevaluator.document.interpretation.toIdentityTokens
 import com.wineevaluator.document.interpretation.tokenize
 import com.wineevaluator.document.model.PriceSignal
 import com.wineevaluator.document.persistence.JpaPriceSignalRepository
@@ -22,7 +22,7 @@ class WineQueryHandler(
         val queryTokens =
             query
                 .let(::tokenize)
-                .let(::toIdentitySet)
+                .let(::toIdentityTokens)
 
         if (queryTokens.isEmpty()) return emptyList()
 

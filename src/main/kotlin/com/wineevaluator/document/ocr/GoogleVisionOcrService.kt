@@ -88,7 +88,7 @@ private fun extractImageLines(text: TextAnnotation): List<OcrLine> {
         }
 }
 
-private fun mergeLinesVisually(lines: List<OcrLine>): List<String> {
+internal fun mergeLinesVisually(lines: List<OcrLine>): List<String> {
     if (lines.isEmpty()) return emptyList()
 
     val sorted = lines.sortedWith(compareBy<OcrLine> { it.baselineY })
