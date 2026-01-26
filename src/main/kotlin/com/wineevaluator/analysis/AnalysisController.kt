@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -42,34 +43,15 @@ class AnalysisController(
             }
         }
     }
-
-    @PostMapping(
-        consumes = [
-            MediaType.MULTIPART_FORM_DATA_VALUE,
-            MediaType.APPLICATION_JSON_VALUE,
-        ],
-    )
-    fun analyze(
-        @RequestPart(required = false) file: MultipartFile?,
-        @RequestPart(required = false) query: WineQueryRequest?,
+    @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE])
+    fun analyzeQuery(
+        @RequestBody query: WineQueryRequest,
     ): ResponseEntity<AnalysisResponse> =
-        when {
-            query != null && file != null -> {
-                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid Input: both query and file")
-            }
+        ResponseEntity.ok(analyzer.query(query))
 
-            query != null -> {
-                val results = analyzer.query(query)
-                ResponseEntity.ok(results)
-            }
-
-            file != null -> {
-                val record = analyzer.start(file)
-                ResponseEntity.accepted().body(record)
-            }
-
-            else -> {
-                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid Input: no query or file")
-            }
-        }
+    @PostMapping(consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun analyzeFile(
+        @RequestPart file: MultipartFile,
+    ): ResponseEntity<AnalysisResponse> =
+        ResponseEntity.accepted().body(analyzer.start(file))
 }
