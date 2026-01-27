@@ -3,7 +3,7 @@ spring:
     restart:
       enabled: true
   datasource:
-    url: jdbc:h2:mem:winelist
+    url: jdbc:h2:file:./data/winelist
     driver-class-name: org.h2.Driver
     username: sa
     password: ""

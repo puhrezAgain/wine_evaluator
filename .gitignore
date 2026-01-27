@@ -6,6 +6,15 @@ build/
 !**/src/test/**/build/
 backend/uploads/
 
+# H2 database files
+*.mv.db
+*.trace.db
+*.lock.db
+
+# If you keep DBs in a folder
+backend/data/
+backend/db/
+
 ### STS ###
 .apt_generated
 .classpath
