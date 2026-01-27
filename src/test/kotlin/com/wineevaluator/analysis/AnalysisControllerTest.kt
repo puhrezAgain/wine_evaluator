@@ -11,6 +11,7 @@ import com.wineevaluator.analysis.model.AnalysisId
 import com.wineevaluator.common.http.ApiExceptionHandler
 import com.wineevaluator.common.error.NotFoundException
 import com.wineevaluator.wine.model.WineQueryRequest
+import com.wineevaluator.wine.model.WineQueryResponse
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
@@ -37,19 +38,25 @@ class AnalysisControllerTest {
 
     @Test
     fun `POST analysis query returns 200`() {
-        every { analyzer.query(any()) } returns
-            AnalysisResponse.AnalysisImmediate(
-                results = mockk(relaxed = true)
+        val query = WineQueryRequest("Viña Tondonía", 48f)
+        val response = AnalysisResponse.AnalysisImmediate(
+            results = WineQueryResponse(
+                original = query.wine,
+                queryPrice = query.price,
+                matches = emptyList()
             )
-        val content = objectMapper.writeValueAsString(
-            WineQueryRequest("Viña Tondonía", 48f)
         )
+        every { analyzer.query(query) } returns response
+
+        val content = objectMapper.writeValueAsString(query)
+
         post("/analysis")
             .contentType(MediaType.APPLICATION_JSON)
             .content(content)
             .let(mockMvc::perform)
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.results").exists())
+            .andExpect(jsonPath("$.results.original").value("Viña Tondonía"))
     }
 
     @Test

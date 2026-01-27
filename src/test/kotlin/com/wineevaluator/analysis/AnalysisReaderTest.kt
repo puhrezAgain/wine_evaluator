@@ -84,7 +84,7 @@ class AnalysisReaderTest {
 
         val matches = listOf(
             WineMatch(
-                signalId = UUID.randomUUID(),
+                queryUploadId = UploadId(UUID.randomUUID()),
                 jaccard = 0.82,
                 price = 48,
                 referencePrice = 32,

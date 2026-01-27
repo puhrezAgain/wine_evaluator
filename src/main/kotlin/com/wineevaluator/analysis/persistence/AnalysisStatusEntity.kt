@@ -19,6 +19,7 @@ class AnalysisStatusEntity(
     val status: AnalysisStatus = AnalysisStatus.PENDING,
     @Column
     val error: String? = null,
+    // NOTE: filepath is for diagnostics
     @Column
     val filepath: String? = null,
 )

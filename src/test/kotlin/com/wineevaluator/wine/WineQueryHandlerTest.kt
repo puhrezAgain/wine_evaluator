@@ -7,6 +7,9 @@ import org.junit.jupiter.api.Test
 import com.wineevaluator.document.persistence.JpaPriceSignalRepository
 import com.wineevaluator.document.model.PriceSignal
 import com.wineevaluator.common.value.UploadId
+import com.wineevaluator.common.error.ValidationException
+import com.wineevaluator.wine.model.WineQueryRequest
+
 import java.util.UUID
 import kotlin.math.roundToInt
 
@@ -25,10 +28,30 @@ class WineQueryHandlerTest {
     //
 
     @Test
+    fun `query throws ValidationException when wine empty`() {
+        val ex = assertThrows(ValidationException::class.java) {
+            handler.query(WineQueryRequest("", 10f))
+        }
+
+        assertEquals("Wine name must not be empty", ex.message)
+
+    }
+
+    @Test
+    fun `query throws ValidationException when price non-positive`() {
+        val ex = assertThrows(ValidationException::class.java) {
+            handler.query(WineQueryRequest("Viña Tondonia", 0f))
+        }
+
+        assertEquals("Price must be positive", ex.message)
+    }
+
+
+    @Test
     fun `query returns empty list when no prices found`() {
         every { priceSignalRepostory.findCandidatesByTokens(any()) } returns emptyList()
-
-        val result = handler.query("Viña Tonodía Reserva 2011", 48)
+        val request = WineQueryRequest("Viña Tonodía Reserva 2011", 48f)
+        val result = handler.query(request)
 
         assertTrue(result.isEmpty())
     }
@@ -43,8 +66,9 @@ class WineQueryHandlerTest {
         )
 
         every { priceSignalRepostory.findCandidatesByTokens(any()) } returns listOf(signal)
+        val request = WineQueryRequest("Viña Tonodía Reserva 2011", 48f)
 
-        val result = handler.query("Viña Tondonía Reserva 2011", 48)
+        val result = handler.query(request)
 
         assertEquals(1, result.size)
 
@@ -74,7 +98,9 @@ class WineQueryHandlerTest {
 
         every { priceSignalRepostory.findCandidatesByTokens(any()) } returns listOf(bad, good)
 
-        val result = handler.query("Viña Tondonía Reserva", 42)
+        val request = WineQueryRequest("Viña Tondonía Reserva", 42f)
+
+        val result = handler.query(request)
 
         assertTrue(result.first().matchTokens.containsAll(listOf("TONDONIA", "RESERVA")))
     }
@@ -95,33 +121,7 @@ class WineQueryHandlerTest {
     }
 
     @Test
-    fun `queryByUploadId returns match for signal price signal`() {
-        val uploadId = UploadId(UUID.randomUUID())
-
-        val signal = PriceSignal(
-            uploadId = uploadId,
-            tokens = setOf("VINA", "TONDONIA", "RESERVA"),
-            prices = listOf(35),
-            rawLine = "Viña Tondonia Reserva 35"
-        )
-
-        every { priceSignalRepostory.findByUploadId(uploadId) } returns listOf(signal)
-        every { priceSignalRepostory.findCandidatesByTokens(any()) } returns listOf(signal)
-
-
-        var result = handler.queryByUploadId(uploadId)
-
-        assertEquals(1, result.size)
-
-        val match = result.first()
-
-        assertEquals(35, match.referencePrice)
-        assertEquals(0, match.delta) // self-comparison
-        assertTrue(match.jaccard > 0.9)
-    }
-
-    @Test
-    fun `queryByUploadId sorts matches returns one match per signal`() {
+    fun `queryByUploadId doesnt match candidates from the same uploadId`() {
         val uploadId = UploadId(UUID.randomUUID())
 
         val strong = PriceSignal(
@@ -138,29 +138,54 @@ class WineQueryHandlerTest {
             "Viña Tondonía Crianza 40"
         )
 
-        val weak = PriceSignal(
-            UploadId(UUID.randomUUID()),
-            setOf("VINA"),
-            listOf(40),
-            "Viña 40"
-        )
-
         every { priceSignalRepostory.findByUploadId(uploadId) } returns listOf(strong, strong2)
-        every { priceSignalRepostory.findCandidatesByTokens(any()) } returns listOf(weak, strong, strong2)
+        every { priceSignalRepostory.findCandidatesByTokens(any()) } returns listOf(strong, strong2)
 
         val result = handler.queryByUploadId(uploadId)
 
-        assertEquals(2, result.size)
+        assertEquals(0, result.size)
     }
 
+
     @Test
-    fun `queryByUploadId returns one match per signal averaging strong signals`() {
+    fun `queryByUploadId doesnt match weak candidates`() {
         val uploadId = UploadId(UUID.randomUUID())
 
         val strong = PriceSignal(
             uploadId,
             setOf("VINA", "TONDONIA", "RESERVA"),
             listOf(40),
+            "Viña Tondonía Reserva 40"
+        )
+        val weak = PriceSignal(
+            UploadId(UUID.randomUUID()),
+            setOf("VINA"),
+            listOf(40),
+            "Viña 40"
+        )
+        every { priceSignalRepostory.findByUploadId(uploadId) } returns listOf(strong)
+        every { priceSignalRepostory.findCandidatesByTokens(any()) } returns listOf(strong, weak)
+
+        val result = handler.queryByUploadId(uploadId)
+
+        assertEquals(0, result.size)
+    }
+
+    @Test
+    fun `queryByUploadId returns one match per signal averaging strong signals`() {
+        val uploadId = UploadId(UUID.randomUUID())
+
+        val signal = PriceSignal(
+            uploadId,
+            setOf("VINA", "TONDONIA", "RESERVA"),
+            listOf(40),
+            "Viña Tondonía Reserva 40"
+        )
+
+        val strong = PriceSignal(
+            UploadId(UUID.randomUUID()),
+            setOf("VINA", "TONDONIA", "RESERVA"),
+            listOf(45),
             "Viña Tondonía Reserva 40"
         )
 
@@ -178,13 +203,13 @@ class WineQueryHandlerTest {
             "Viña 40"
         )
 
-        every { priceSignalRepostory.findByUploadId(uploadId) } returns listOf(strong)
-        every { priceSignalRepostory.findCandidatesByTokens(any()) } returns listOf(weak, strong, strong2)
+        every { priceSignalRepostory.findByUploadId(uploadId) } returns listOf(signal)
+        every { priceSignalRepostory.findCandidatesByTokens(any()) } returns listOf(weak, signal, strong, strong2)
 
         val result = handler.queryByUploadId(uploadId)
 
         assertEquals(1, result.size)
-        assertEquals(listOf(40, 50).average().roundToInt(), result.first().referencePrice)
+        assertEquals(listOf(45, 50).average().roundToInt(), result.first().referencePrice)
     }
     @Test
     fun `queryByUploadId ignores signals without prices`() {

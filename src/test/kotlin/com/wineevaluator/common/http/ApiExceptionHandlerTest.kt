@@ -8,7 +8,7 @@ import com.wineevaluator.common.error.NotFoundException
 import com.wineevaluator.common.error.DomainException
 import com.wineevaluator.common.error.ProcessingException
 
-class ApiExceptionHanlderTest {
+class ApiExceptionHandlerTest {
     private val handler = ApiExceptionHandler()
 
     @Test

@@ -7,6 +7,9 @@ import com.wineevaluator.document.model.PriceSignal
 import com.wineevaluator.document.persistence.JpaPriceSignalRepository
 import com.wineevaluator.wine.matching.hybridScore
 import com.wineevaluator.wine.model.WineMatch
+import com.wineevaluator.wine.model.WineQueryRequest
+import com.wineevaluator.common.error.ValidationException
+
 import org.springframework.stereotype.Service
 import kotlin.math.roundToInt
 
@@ -17,11 +20,12 @@ class WineQueryHandler(
     private val repository: JpaPriceSignalRepository,
 ) {
     fun query(
-        query: String,
-        queryPrice: Int,
+        query: WineQueryRequest,
     ): List<WineMatch> {
+        validateQuery(query)
+
         val queryTokens =
-            query
+            query.wine
                 .let(::tokenize)
                 .let(::toIdentityTokens)
 
@@ -30,7 +34,7 @@ class WineQueryHandler(
         val candidates = repository.findCandidatesByTokens(queryTokens)
 
         return candidates
-            .mapNotNull { calculateMatch(it, queryTokens, queryPrice) }
+            .mapNotNull { calculateMatch(it, queryTokens, query.roundedPrice()) }
             .sortedByDescending { it.jaccard }
     }
 
@@ -52,23 +56,37 @@ class WineQueryHandler(
         if (candidates.isEmpty()) return emptyList()
 
 
-        return signals.mapNotNull { signalToAvgBestMatches(it, candidates) }
+        return signals.mapNotNull { aggregateMatchesForSignal(it, candidates) }
     }
 
-    private fun signalToAvgBestMatches(signal: PriceSignal, candidates: List<PriceSignal>): WineMatch? {
+
+    private fun validateQuery(query: WineQueryRequest) {
+        if (query.wine.isEmpty()) {
+            throw ValidationException("Wine name must not be empty")
+        }
+
+        if (query.price <= 0) {
+            throw ValidationException("Price must be positive")
+        }
+    }
+    private fun aggregateMatchesForSignal(signal: PriceSignal, candidates: List<PriceSignal>): WineMatch? {
         val price = signal.prices.maxOrNull() ?: return null
 
         val goodMatches = candidates
-            .mapNotNull { calculateMatch(it, signal.tokens, price) }
+            .mapNotNull {
+                // exclude self matches
+                if (it.uploadId == signal.uploadId) return@mapNotNull null
+                calculateMatch(it, signal.tokens, price)
+            }
 
         if (goodMatches.isEmpty()) return null
-        println("GOOD MATCHES $goodMatches")
+
         val refPrice = goodMatches.map { it.referencePrice }.average()
         val avgJaccard = goodMatches.map { it.jaccard }.average()
         val matchTokens = goodMatches.flatMap { it.matchTokens }.toSet()
 
         return WineMatch(
-            signalId = signal.uploadId.value,
+            queryUploadId = signal.uploadId,
             jaccard = avgJaccard,
             price = price,
             referencePrice = refPrice.roundToInt(),
@@ -99,7 +117,7 @@ class WineQueryHandler(
         val deltaPercent = percentDelta(price.toDouble(), refPrice.toDouble())
 
         return WineMatch(
-            signalId = signal.uploadId.value,
+            queryUploadId = signal.uploadId,
             tokens = tokens,
             price = price,
             jaccard = score,

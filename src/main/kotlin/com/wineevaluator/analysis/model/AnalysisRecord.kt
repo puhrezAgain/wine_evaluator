@@ -25,4 +25,8 @@ data class AnalysisRecord(
     val id: AnalysisId,
     val status: AnalysisStatus = AnalysisStatus.PENDING,
     val error: String? = null,
-)
+) {
+    companion object {
+        fun started(id: AnalysisId): AnalysisRecord = AnalysisRecord(id)
+    }
+}

@@ -17,7 +17,10 @@ class DocumentProcessingPipeline(
     fun process(file: DocumentFile) {
         val lines = parser.parse(file)
 
-        if (lines.isEmpty()) return
+        if (lines.isEmpty()) {
+            log.debug("document.no.lines uploadId={}", file.id.value)
+            return
+        }
 
         log.debug("document.parsed lines={} uploadId={}", lines.size, file.id.value)
 
@@ -26,7 +29,10 @@ class DocumentProcessingPipeline(
                 .map { interpreter.interpret(file.id, it) }
                 .filterNotNull()
 
-        if (signals.isEmpty()) return
+        if (signals.isEmpty()) {
+            log.debug("document.no.signals uploadId={}", file.id.value)
+            return
+        }
 
         log.debug("document.interpreted signals={} uploadId={}", signals.size, file.id.value)
 
