@@ -4,6 +4,17 @@ Understand wine lists in the wild.
 Wine Evaluator analyzes wine lists to learn real-world prices and lets
 users instantly check whether a specific wine is fairly priced.
 
+## Development
+
+Requirements:
+- Node 18+
+- Java 17+
+
+Run everything:
+```bash
+npm install
+npm run dev
+```
 
 ## App Flow
 

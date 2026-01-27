@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm:dev:backend\" \"npm:dev:frontend\"",
+    "dev:backend": "cd backend && ./gradlew bootRun",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && ./gradlew build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

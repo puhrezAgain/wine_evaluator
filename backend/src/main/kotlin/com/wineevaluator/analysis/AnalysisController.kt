@@ -26,7 +26,7 @@ class AnalysisController(
             @PathVariable id: AnalysisId,
     ): ResponseEntity<AnalysisResultView> {
         val view = analysisReader.getAnalysis(id)
-        println("sdas")
+
         return when (view) {
             is AnalysisResultView.Pending -> {
                 ResponseEntity.accepted().body(view)
