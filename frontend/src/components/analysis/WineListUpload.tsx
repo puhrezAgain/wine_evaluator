@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { uploadWineList } from "../api/analysis";
+import { uploadWineList } from "../../api/analysis";
 
 export function WineListUpload() {
   const [file, setFile] = useState<File | null>(null);
@@ -18,8 +18,8 @@ export function WineListUpload() {
     try {
       const result = await uploadWineList(file);
       navigate(`/winelist/${result.record.id}`);
-    } catch (e: any) {
-      setError(e.message || "Failed to upload wine list");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to upload wine list");
     } finally {
       setLoading(false);
     }

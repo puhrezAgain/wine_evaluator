@@ -1,4 +1,4 @@
-import type { WineMatch } from "../api/analysis";
+import type { WineMatch } from "../../api/analysis";
 
 interface DoneStateProps {
   results: WineMatch[];
@@ -8,7 +8,9 @@ export function DoneState({ results }: DoneStateProps) {
   return (
     <section>
       <h3>Results</h3>
-
+      <p>
+        Shareable link: <code>{window.location.href}</code>
+      </p>
       <table>
         <thead>
           <tr>
