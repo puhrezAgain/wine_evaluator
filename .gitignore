@@ -1,114 +1,105 @@
-HELP.md
-.gradle
+####################################
+# Gradle / JVM / Kotlin
+####################################
+.gradle/
 build/
+out/
+target/
+*.class
+*.kotlin_module
+*.exec
+.kotlin
+
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+
+####################################
+# Backend runtime data
+####################################
 backend/uploads/
+backend/data/
+backend/db/
 
 # H2 database files
 *.mv.db
 *.trace.db
 *.lock.db
 
-# If you keep DBs in a folder
-backend/data/
-backend/db/
-
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
-
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
+####################################
+# Frontend (Node / React / TS)
+####################################
+node_modules/
+dist/
+build/
 out/
-!**/src/main/**/out/
-!**/src/test/**/out/
+.next/
+.vite/
+.esbuild/
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+*.tsbuildinfo
 
-### VS Code ###
-.vscode/
+####################################
+# Logs
+####################################
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-### Kotlin ###
-.kotlin
+####################################
+# Coverage
+####################################
+coverage/
+.nyc_output/
 
-# =========================
-# Build output
-# =========================
-/build/
-/out/
-/uploads/
+####################################
+# Environment / secrets
+####################################
+.env
+.env.*
+!.env.example
+application-local.yml
+application-dev.yml
 
-# =========================
-# Gradle
-# =========================
-.gradle/
-!gradle/wrapper/gradle-wrapper.jar
-
-# =========================
-# Kotlin
-# =========================
-*.class
-*.kotlin_module
-
-# =========================
-# IntelliJ IDEA (even if you use VS Code)
-# =========================
+####################################
+# IDEs
+####################################
 .idea/
 *.iml
+*.iws
+*.ipr
 
-# =========================
-# VS Code
-# =========================
+# VS Code (keep selected config)
 .vscode/*
 !.vscode/settings.json
 !.vscode/launch.json
 !.vscode/extensions.json
 
-# =========================
-# Logs
-# =========================
-*.log
-
-# =========================
+####################################
 # OS files
-# =========================
+####################################
 .DS_Store
 Thumbs.db
 
-# =========================
-# Environment / secrets
-# =========================
-.env
-.env.*
-application-local.yml
-application-dev.yml
+####################################
+# Package managers
+####################################
+.pnpm-store/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
 
-# =========================
-# Test / coverage
-# =========================
-/target/
-coverage/
-*.exec
-
-# =========================
+####################################
 # Docker
-# =========================
+####################################
 docker-compose.override.yml
+
+####################################
+# Misc
+####################################
+*.local
+HELP.md

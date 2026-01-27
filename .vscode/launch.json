@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Spring Boot",
+      "type": "java",
+      "request": "launch",
+      "mainClass": "org.gradle.wrapper.GradleWrapperMain",
+      "args": "bootRun",
+      "cwd": "${workspaceFolder}/backend/gradle",
+      "console": "integratedTerminal"
+    }
+  ]
+}
