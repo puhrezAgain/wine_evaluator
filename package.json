@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm:dev:backend\" \"npm:dev:frontend\"",
-    "dev:backend": "cd backend && ./gradlew clean build bootRun -t",
+    "dev:backend": "cd backend && ./gradlew bootRun -t",
     "dev:frontend": "cd frontend && npm run dev",
     "build": "npm run build:frontend && npm run build:backend",
     "build:frontend": "cd frontend && npm run build",
