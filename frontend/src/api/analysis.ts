@@ -1,3 +1,5 @@
+export const API_BASE = import.meta.env.VITE_API_BASE ?? "";
+
 export type WineMatch = {
   queryUploadId: string;
   jaccard: number;
@@ -19,7 +21,7 @@ export async function analyzeWine(
   wine: string,
   price: number,
 ): Promise<WineQueryResponse> {
-  const res = await fetch("/analysis", {
+  const res = await fetch(`${API_BASE}/analysis`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ wine, price }),
@@ -45,7 +47,7 @@ export async function uploadWineList(file: File): Promise<AnalysisStarted> {
   const form = new FormData();
   form.append("file", file);
 
-  const res = await fetch("/analysis", {
+  const res = await fetch(`${API_BASE}/analysis`, {
     method: "POST",
     body: form,
   });
@@ -74,7 +76,7 @@ export type AnalysisResult =
     };
 
 export async function getAnalysis(id: string): Promise<AnalysisResult> {
-  const res = await fetch(`/analysis/${id}`);
+  const res = await fetch(`${API_BASE}/analysis/${id}`);
   const data = await res.json();
 
   if (res.status === 202) {
