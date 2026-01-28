@@ -4,6 +4,7 @@
 .gradle/
 build/
 out/
+bin/
 target/
 *.class
 *.kotlin_module
