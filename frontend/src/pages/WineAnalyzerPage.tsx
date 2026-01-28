@@ -18,7 +18,7 @@ export default function WineAnalyzerPage() {
       setLoading(true);
       const result = await analyzeWine(wine, price);
       setMatches(result.matches);
-    } catch (e: any) {
+    } catch (e) {
       setError(e instanceof Error ? e.message : "error handling alanyze");
       setMatches([]);
     } finally {

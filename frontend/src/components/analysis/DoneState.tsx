@@ -5,11 +5,12 @@ interface DoneStateProps {
 }
 
 export function DoneState({ results }: DoneStateProps) {
+  const shareUrl = typeof window !== "undefined" ? window.location.href : "";
   return (
     <section>
       <h3>Results</h3>
       <p>
-        Shareable link: <code>{window.location.href}</code>
+        Shareable link: <code>{shareUrl}</code>
       </p>
       <table>
         <thead>
