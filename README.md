@@ -16,6 +16,7 @@ npm install
 npm run dev
 ```
 
+
 ## App Flow
 
 Two main use cases:
@@ -152,3 +153,66 @@ Notes
 * Wine list checks return results for that list
 * Observed prices are stored and reused
 * Single wine checks are read-only and immediate
+
+## Deployment
+
+This project uses **Terraform for infrastructure** and **Make for deployments**.
+
+**Rule of thumb**
+- Infrastructure changes → run Terraform (rare)
+- Frontend updates → sync static files (often)
+
+
+### Prerequisites
+
+- Node.js
+- Docker
+- Terraform ≥ 1.5
+- `gcloud` CLI (authenticated to the project)
+- Access to the GCP project
+
+
+### Infrastructure
+---
+
+Provision or update all GCP resources and deploy both frontend and backend:
+
+```bash
+make deploy
+```
+
+
+### Backend API
+---
+
+Update the image used by cloud run:
+
+
+```bash
+make deploy-backend
+```
+
+Images are tagged with the current git commit SHA.
+
+
+### Frontend
+---
+
+Build and deploy the SPA:
+
+```bash
+make deploy-frontend
+```
+
+This builds the frontend and syncs static files to Cloud Storage.
+No Terraform apply is required.
+
+
+### Access the app
+---
+Open the frontend in your browser:
+```bash
+make open-frontend
+```
+
+Until a domain is configured, the app is served via a load balancer IP.

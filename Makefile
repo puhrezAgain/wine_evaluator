@@ -11,7 +11,7 @@ BACKEND_NAME = wine-evaluator-api-$(ENV)
 FRONTEND_NAME = wine-ui-$(ENV)
 
 IMAGE_TAG := $(shell git rev-parse --short HEAD)
-IMAGE := $(REGION)-docker.pkg.dev/wine-evaluator/api/wine-evaluator-api-$(ENV):$(IMAGE_TAG)
+IMAGE := $(REGION)-docker.pkg.dev/$(PROJECT_ID)/api/wine-evaluator-api-$(ENV):$(IMAGE_TAG)
 
 # Cloud Run common flags
 CLOUD_RUN_FLAGS = \
@@ -32,8 +32,8 @@ TF_VARS = \
 .PHONY: help dev build \
 	build-frontend build-backend api-image \
 	infra-init infra-plan infra-apply \
-	deploy deploy-backend sync-frontend deploy-frontend confirm \
-	status logs-backend check-auth
+	deploy deploy-backend sync-frontend deploy-frontend deploy-ci  \
+	status logs-backend check-auth open-frontend confirm
 
 help:
 	@echo ""
@@ -45,9 +45,10 @@ help:
 	@echo "  infra-plan         Terraform plan (env=$(ENV))"
 	@echo "  status             Verify cloud deployment status"
 	@echo "  logs-backend       Read backend logs from Cloud Run"
-	@echo "  deploy-backend     Deploy backend to Cloud Run"
 	@echo "  deploy-frontend    Deploy frontend to Cloud Storage"
+	@echo "  deploy-backend     Deploy backend Cloud Run via Terraform"
 	@echo "  deploy             Deploy frontend + backend"
+	@echo "  open-frontend      Open the frontend in the browser"
 	@echo ""
 
 
@@ -67,7 +68,7 @@ build-frontend:
 build-backend:
 	cd backend && ./gradlew clean bootJar
 
-api-image:
+api-image: build-backend
 	docker build --platform=linux/amd64 -t $(IMAGE) backend/
 	docker push $(IMAGE)
 
@@ -81,7 +82,7 @@ infra-init:
 infra-plan:
 	terraform -chdir=infra plan $(TF_VARS)
 
-infra-apply: check-auth api-image
+infra-apply: api-image
 	terraform -chdir=infra apply $(TF_VARS)
 
 
@@ -89,34 +90,38 @@ infra-apply: check-auth api-image
 # Helpers
 # =========================
 status:
-	gcloud run services list \
-		--region $(REGION) \
-		--project $(PROJECT_ID)
+	@echo "API:"
+	@terraform -chdir=infra output -raw api_url
+	@echo ""
+	@echo "Frontend:"
+	@terraform -chdir=infra output -raw spa_url
 
 logs-backend:
 	gcloud run services logs read $(BACKEND_NAME) \
 		--region $(REGION) \
 		--project $(PROJECT_ID)
 
+open-frontend:
+	open $(shell terraform -chdir=infra output -raw spa_url)
+
 # =========================
 # Deploy
 # =========================
-check-auth:
-	@gcloud auth application-default print-access-token > /dev/null 2>&1 || \
-		(echo "\033[31mError: ADC credentials expired.\033[0m Run: gcloud auth application-default login"; exit 1)
-	@gcloud auth application-default set-quota-project $(PROJECT_ID)
-
-deploy-backend: build-backend
-	gcloud run deploy $(BACKEND_NAME) \
-		$(CLOUD_RUN_FLAGS) \
-		--source backend/
-
 sync-frontend:
 	$(eval SPA_BUCKET := $(shell terraform -chdir=infra output -raw spa_bucket_name))
 	gsutil -m rsync -r -d frontend/dist gs://$(SPA_BUCKET)
 
 deploy-frontend: build-frontend sync-frontend
 
+deploy-backend: infra-apply
+
+deploy: check-auth confirm deploy-backend deploy-frontend
+
+deploy-ci: deploy-backend deploy-frontend
+
+# =========================
+# Meta
+# =========================
 ifeq ($(CONFIRM),true)
 confirm:
 	@read -p "Deploy to $(ENV) in project $(PROJECT_ID)? [y/N] " ans; \
@@ -128,5 +133,7 @@ confirm:
 	@true
 endif
 
-deploy: check-auth confirm deploy-backend deploy-frontend
-
+check-auth:
+	@gcloud auth application-default print-access-token > /dev/null 2>&1 || \
+		(echo "\033[31mError: ADC credentials expired.\033[0m Run: gcloud auth application-default login"; exit 1)
+	@gcloud auth application-default set-quota-project $(PROJECT_ID)
