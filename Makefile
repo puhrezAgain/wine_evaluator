@@ -66,7 +66,7 @@ build-frontend:
 	cd frontend && VITE_API_BASE="$(API_BASE)" npm run build
 
 build-backend:
-	cd backend && ./gradlew clean bootJar
+	cd backend && ./gradlew clean bootJar --no-daemon
 
 api-image: build-backend
 	docker build --platform=linux/amd64 -t $(IMAGE) backend/
