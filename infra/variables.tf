@@ -16,3 +16,9 @@ variable "region" {
 variable "api_image" {
   type = string
 }
+
+
+variable "github_repository" {
+  type    = string
+  default = "puhrezAgain/wine_evaluator"
+}

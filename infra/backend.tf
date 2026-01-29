@@ -24,6 +24,19 @@ resource "google_cloud_run_service" "api" {
   depends_on = [google_project_service.vision]
 }
 
+resource "google_service_account" "backend" {
+  account_id   = "wine-backend-${var.env}"
+  display_name = "Wine Evaluator Backend"
+}
+
+resource "google_project_iam_member" "vision_usage" {
+  project = var.project_id
+  role    = "roles/serviceusage.serviceUsageConsumer"
+  member  = "serviceAccount:${google_service_account.backend.email}"
+
+  depends_on = [google_project_service.vision]
+}
+
 resource "google_artifact_registry_repository" "api" {
   provider      = google
   location      = var.region
