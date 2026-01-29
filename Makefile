@@ -82,14 +82,18 @@ infra-init:
 infra-plan:
 	terraform -chdir=infra plan $(TF_VARS)
 
-infra-apply: api-image
+infra-apply: infra-init api-image
+ifeq ($(CONFIRM),true)
 	terraform -chdir=infra apply $(TF_VARS)
-
+else
+	terraform -chdir=infra apply -auto-approve -input=false $(TF_VARS)
+endif
 
 # =========================
 # Helpers
 # =========================
 status:
+	@echo "Environment: $(ENV)"
 	@echo "API:"
 	@terraform -chdir=infra output -raw api_url
 	@echo ""
@@ -117,8 +121,6 @@ deploy-backend: infra-apply
 
 deploy: check-auth confirm deploy-backend deploy-frontend
 
-deploy-ci: deploy-backend deploy-frontend
-
 # =========================
 # Meta
 # =========================
@@ -133,7 +135,12 @@ confirm:
 	@true
 endif
 
+ifeq ($(CONFIRM),true)
 check-auth:
 	@gcloud auth application-default print-access-token > /dev/null 2>&1 || \
 		(echo "\033[31mError: ADC credentials expired.\033[0m Run: gcloud auth application-default login"; exit 1)
 	@gcloud auth application-default set-quota-project $(PROJECT_ID)
+else
+check-auth:
+	@true
+endif
