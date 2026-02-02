@@ -30,7 +30,8 @@ class WineQueryHandler(
 
                 if (queryTokens.isEmpty()) return emptyList()
 
-                val candidates = repository.findCandidatesByTokens(queryTokens)
+                val candidates =
+                        repository.findCandidatesByTokens(queryTokens).let(::dedupIdenticalSignals)
 
                 return candidates
                         .mapNotNull { calculateMatch(it, queryTokens, query.roundedPrice()) }
@@ -58,6 +59,9 @@ class WineQueryHandler(
                         applyMatchStrategyForSignal(it, candidates, matchStrategy)
                 }
         }
+
+        private fun dedupIdenticalSignals(signals: List<BottlePricedSignal>) =
+                signals.distinctBy { it.tokens to it.price }
 
         private fun validateQuery(query: WineQueryRequest) {
                 if (query.wine.isEmpty()) {

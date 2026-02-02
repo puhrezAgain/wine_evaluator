@@ -111,6 +111,39 @@ class WineQueryHandlerTest {
                 assertTrue(result.first().matchTokens.containsAll(listOf("TONDONIA", "RESERVA")))
         }
 
+        @Test
+        fun `query deduplicates matches with the same token and price, even from different uploads`() {
+                val examples =
+                        listOf(
+                                BottlePricedSignal(
+                                        UploadId(UUID.randomUUID()),
+                                        setOf("VINA", "TONDONIA", "RESERVA"),
+                                        40,
+                                        "Viña Tondonía Reserva 40"
+                                ),
+                                BottlePricedSignal(
+                                        UploadId(UUID.randomUUID()),
+                                        setOf("VINA", "TONDONIA", "RESERVA"),
+                                        40,
+                                        "Viña Tondonía Reserva 40"
+                                ),
+                                BottlePricedSignal(
+                                        UploadId(UUID.randomUUID()),
+                                        setOf("VINA", "TONDONIA", "RESERVA"),
+                                        40,
+                                        "Viña Tondonía Reserva 40"
+                                )
+                        )
+
+                every { priceSignalRepostory.findCandidatesByTokens(any()) } returns examples
+
+                val request = WineQueryRequest("Viña Tondonía Reserva", 42f)
+
+                val result = handler.query(request)
+
+                assertEquals(1, result.size)
+        }
+
         //
         // queryByUploadId
         //
