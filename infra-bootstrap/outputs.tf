@@ -1,7 +1,3 @@
-output "api_url" {
-  value = google_cloud_run_service.api.status[0].url
-}
-
 output "spa_bucket_name" {
   value = google_storage_bucket.spa.name
 }
@@ -16,4 +12,8 @@ output "github_wif_provider" {
 
 output "ci_service_account_email" {
   value = google_service_account.ci.email
+}
+
+output "backend_service_account_email" {
+  value = google_service_account.backend.email
 }

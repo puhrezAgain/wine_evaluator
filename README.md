@@ -21,7 +21,7 @@ npm run dev
 
 Two main use cases:
 1. List Check: Analyze an entire menu and get analysis on it.
-2. Wine Check: Analyze a single wine.
+2. Wine Check: Analyze a single wine.make
 
 
 ### List Check
@@ -178,7 +178,7 @@ This project uses **Terraform for infrastructure** and **Make for deployments**.
 Provision or update all GCP resources and deploy both frontend and backend:
 
 ```bash
-make deploy
+make provision-and-deploy
 ```
 
 

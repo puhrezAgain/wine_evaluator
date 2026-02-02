@@ -6,6 +6,7 @@ REGION ?= europe-west1
 
 CONFIRM ?= true
 ENV ?= dev
+BACKEND_SA ?= $(shell terraform -chdir=infra-bootstrap output -raw backend_service_account_email)
 
 BACKEND_NAME = wine-evaluator-api-$(ENV)
 FRONTEND_NAME = wine-ui-$(ENV)
@@ -19,10 +20,15 @@ CLOUD_RUN_FLAGS = \
 	--project $(PROJECT_ID) \
 	--allow-unauthenticated
 
-TF_VARS = \
+TF_VARS_COMMON = \
 	-var="env=$(ENV)" \
+	-var="project_id=$(PROJECT_ID)"
+
+TF_VARS_APP = \
+	$(TF_VARS_COMMON) \
 	-var="api_image=$(IMAGE)" \
-	-var="project_id=$(PROJECT_ID)" \
+	-var="backend_service_account_email=$(BACKEND_SA)"
+
 
 # =========================
 # Meta
@@ -31,8 +37,8 @@ TF_VARS = \
 
 .PHONY: help dev build \
 	build-frontend build-backend api-image \
-	infra-init infra-plan infra-apply \
-	deploy deploy-backend sync-frontend deploy-frontend deploy-ci  \
+	infra-bootstrap infra-app \
+	deploy deploy-backend sync-frontend deploy-frontend provision-and-deploy \
 	status logs-backend check-auth open-frontend confirm
 
 help:
@@ -40,9 +46,8 @@ help:
 	@echo "Available targets:"
 	@echo "  dev                Run frontend + backend locally"
 	@echo "  build              Build frontend and backend"
-	@echo "  infra-init         Terraform init"
-	@echo "  infra-apply        Terraform apply (env=$(ENV))"
-	@echo "  infra-plan         Terraform plan (env=$(ENV))"
+	@echo "  infra-bootstrap    Provision platform/infrastructure (including frontend hosting)"
+	@echo "  infra-app          Provision app runtime"
 	@echo "  status             Verify cloud deployment status"
 	@echo "  logs-backend       Read backend logs from Cloud Run"
 	@echo "  deploy-frontend    Deploy frontend to Cloud Storage"
@@ -61,7 +66,7 @@ dev:
 build: build-frontend build-backend
 
 build-frontend:
-	$(eval API_BASE := $(shell terraform -chdir=infra output -raw api_url))
+	$(eval API_BASE := $(shell terraform -chdir=infra-app output -raw api_url))
 	@echo "Building frontend with API_BASE=$(API_BASE)"
 	cd frontend && VITE_API_BASE="$(API_BASE)" npm run build
 
@@ -76,17 +81,16 @@ api-image: build-backend
 # =========================
 # Infrastructure
 # =========================
-infra-init:
-	terraform -chdir=infra init
+infra-bootstrap:
+	terraform -chdir=infra-bootstrap init
+	terraform -chdir=infra-bootstrap apply $(TF_VARS_COMMON)
 
-infra-plan:
-	terraform -chdir=infra plan $(TF_VARS)
-
-infra-apply: infra-init api-image
+infra-app: guard-backend-sa
+	terraform -chdir=infra-app init
 ifeq ($(CONFIRM),true)
-	terraform -chdir=infra apply $(TF_VARS)
+	terraform -chdir=infra-app apply $(TF_VARS_APP)
 else
-	terraform -chdir=infra apply -auto-approve -input=false $(TF_VARS)
+	terraform -chdir=infra-app apply -auto-approve -input=false $(TF_VARS_APP)
 endif
 
 # =========================
@@ -95,10 +99,10 @@ endif
 status:
 	@echo "Environment: $(ENV)"
 	@echo "API:"
-	@terraform -chdir=infra output -raw api_url
+	@terraform -chdir=infra-app output -raw api_url
 	@echo ""
 	@echo "Frontend:"
-	@terraform -chdir=infra output -raw spa_url
+	@terraform -chdir=infra-bootstrap output -raw spa_url
 
 logs-backend:
 	gcloud run services logs read $(BACKEND_NAME) \
@@ -106,24 +110,34 @@ logs-backend:
 		--project $(PROJECT_ID)
 
 open-frontend:
-	open $(shell terraform -chdir=infra output -raw spa_url)
+	open $(shell terraform -chdir=infra-bootstrap output -raw spa_url)
 
 # =========================
 # Deploy
 # =========================
 sync-frontend:
-	$(eval SPA_BUCKET := $(shell terraform -chdir=infra output -raw spa_bucket_name))
+	$(eval SPA_BUCKET := $(shell terraform -chdir=infra-bootstrap output -raw spa_bucket_name))
 	gsutil -m rsync -r -d frontend/dist gs://$(SPA_BUCKET)
 
 deploy-frontend: build-frontend sync-frontend
 
-deploy-backend: infra-apply
+deploy-backend: guard-backend-sa infra-app
 
 deploy: check-auth confirm deploy-backend deploy-frontend
 
+provision-and-deploy:
+	@echo "⚠️  This provisions IAM and infrastructure. Admin use only."
+	@$(MAKE) infra-bootstrap CONFIRM=true
+	@$(MAKE) deploy CONFIRM=true
+
 # =========================
-# Meta
+# Guards
 # =========================
+guard-backend-sa:
+ifndef BACKEND_SA
+	$(error BACKEND_SA is not set and infra-bootstrap has not been applied)
+endif
+
 ifeq ($(CONFIRM),true)
 confirm:
 	@read -p "Deploy to $(ENV) in project $(PROJECT_ID)? [y/N] " ans; \

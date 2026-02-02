@@ -18,6 +18,7 @@ jobs:
           PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
           REGION: ${{ vars.GCP_REGION }}
           CONFIRM: false
+          SA_BACKEND: ${{ vars.BACKEND_SA }}
 
         steps:
             - name: Checkout

@@ -12,13 +12,11 @@ variable "region" {
   default = "europe-west1"
 }
 
+variable "backend_service_account_email" {
+  type = string
+}
 
 variable "api_image" {
   type = string
 }
 
-
-variable "github_repository" {
-  type    = string
-  default = "puhrezAgain/wine_evaluator"
-}
