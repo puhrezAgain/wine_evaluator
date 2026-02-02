@@ -38,8 +38,7 @@ TF_VARS_APP = \
 	build-frontend build-backend api-image \
 	infra-init infra-bootstrap infra-app \
 	deploy deploy-backend sync-frontend deploy-frontend provision-and-deploy \
-	status logs-backend check-auth open-frontend confirm \
-	guard-spa-bucket guard-backend-sa
+	status logs-backend check-auth open-frontend confirm
 
 help:
 	@echo ""
@@ -67,12 +66,7 @@ build: build-frontend build-backend
 
 build-frontend:
 	cd frontend && npm ci
-	@API_BASE_ENV="$(API_BASE)"; \
-	if [ -z "$$API_BASE_ENV" ]; then \
-		echo "Resolving API_BASE from Terraform output..."; \
-		API_BASE_ENV=$$(terraform -chdir=infra-app output -raw api_url); \
-	fi; \
-	echo "Building frontend with API_BASE=$$API_BASE_ENV"; \
+	@$(call resolve_api_base) \
 	cd frontend && VITE_API_BASE="$$API_BASE_ENV" npm run build
 
 build-backend:
@@ -101,6 +95,26 @@ else
 endif
 
 # =========================
+# Deploy
+# =========================
+sync-frontend:
+	@$(call resolve_spa_bucket) \
+	gsutil -m rsync -r -d frontend/dist gs://$$SPA_BUCKET_ENV
+
+deploy-frontend: build-frontend sync-frontend
+
+deploy-backend:
+	@$(call resolve_backend_sa) \
+	$(MAKE) infra-app BACKEND_SA="$$BACKEND_SA_ENV"
+
+deploy: check-auth confirm infra-init deploy-backend deploy-frontend
+
+provision-and-deploy:
+	@echo "⚠️  This provisions IAM and infrastructure. Admin use only."
+	@$(MAKE) infra-bootstrap CONFIRM=true
+	@$(MAKE) deploy CONFIRM=true
+
+# =========================
 # Helpers
 # =========================
 status:
@@ -119,46 +133,31 @@ logs-backend:
 open-frontend:
 	open $(shell terraform -chdir=infra-bootstrap output -raw spa_url)
 
-# =========================
-# Deploy
-# =========================
-sync-frontend: guard-spa-bucket
-	gsutil -m rsync -r -d frontend/dist gs://$(SPA_BUCKET)
+define resolve_tf_output
+$1_ENV="$$$1"; \
+if [ -z "$$$1_ENV" ]; then \
+	echo "Resolving $1 from Terraform output ($2)..."; \
+	$1_ENV=$$(terraform -chdir=$2 output -raw $3); \
+fi; \
+echo "Using $1=$$$1_ENV";
+endef
 
-deploy-frontend: build-frontend sync-frontend
+define resolve_api_base
+$(call resolve_tf_output,API_BASE,infra-app,api_url)
+endef
 
-deploy-backend: guard-backend-sa infra-app
+define resolve_backend_sa
+$(call resolve_tf_output,BACKEND_SA,infra-bootstrap,backend_service_account_email)
+endef
 
-deploy: check-auth confirm deploy-backend deploy-frontend
+define resolve_spa_bucket
+$(call resolve_tf_output,SPA_BUCKET,infra-bootstrap,spa_bucket_name)
+endef
 
-provision-and-deploy:
-	@echo "⚠️  This provisions IAM and infrastructure. Admin use only."
-	@$(MAKE) infra-bootstrap CONFIRM=true
-	@$(MAKE) deploy CONFIRM=true
 
 # =========================
 # Guards
 # =========================
-guard-backend-sa: infra-init
-ifndef BACKEND_SA
-	@echo "Resolving BACKEND_SA from terraform output..."
-	$(eval BACKEND_SA := $(shell terraform -chdir=infra-bootstrap output -raw backend_service_account_email))
-endif
-
-ifndef BACKEND_SA
-	$(error BACKEND_SA is not set and infra-bootstrap has not been applied)
-endif
-
-
-guard-spa-bucket: infra-init
-ifndef SPA_BUCKET
-	$(eval SPA_BUCKET := $(shell terraform -chdir=infra-bootstrap output -raw spa_bucket_name))
-endif
-
-ifndef SPA_BUCKET
-	$(error SPA_BUCKET not resolved; run infra-bootstrap first)
-endif
-
 ifeq ($(CONFIRM),true)
 confirm:
 	@read -p "Deploy to $(ENV) in project $(PROJECT_ID)? [y/N] " ans; \
