@@ -65,6 +65,7 @@ dev:
 build: build-frontend build-backend
 
 build-frontend:
+	cd frontend && npm ci
 	$(eval API_BASE := $(shell terraform -chdir=infra-app output -raw api_url))
 	@echo "Building frontend with API_BASE=$(API_BASE)"
 	cd frontend && VITE_API_BASE="$(API_BASE)" npm run build
@@ -84,7 +85,7 @@ infra-bootstrap:
 	terraform -chdir=infra-bootstrap init
 	terraform -chdir=infra-bootstrap apply $(TF_VARS_COMMON)
 
-infra-app: guard-backend-sa
+infra-app: guard-backend-sa api-image
 	terraform -chdir=infra-app init
 ifeq ($(CONFIRM),true)
 	terraform -chdir=infra-app apply $(TF_VARS_APP)
