@@ -68,7 +68,7 @@ build: build-frontend build-backend
 build-frontend:
 	cd frontend && npm ci
 	@API_BASE_ENV="$(API_BASE)"; \
-	@if [ -z "$$API_BASE_ENV" ]; then \
+	if [ -z "$$API_BASE_ENV" ]; then \
 		echo "Resolving API_BASE from Terraform output..."; \
 		API_BASE_ENV=$$(terraform -chdir=infra-app output -raw api_url); \
 	fi; \
