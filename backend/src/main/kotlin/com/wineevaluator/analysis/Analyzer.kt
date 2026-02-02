@@ -1,6 +1,7 @@
 package com.wineevaluator.analysis
 
 import com.wineevaluator.analysis.model.AnalysisResponse
+import com.wineevaluator.analysis.model.DiagnosticResponse
 import com.wineevaluator.wine.WineQueryHandler
 import com.wineevaluator.wine.model.WineQueryRequest
 import com.wineevaluator.wine.model.WineQueryResponse
@@ -22,4 +23,7 @@ class Analyzer(
                         WineQueryResponse(query.wine, query.price, results),
                 )
         }
+
+        fun diagnose(file: MultipartFile): DiagnosticResponse =
+                DiagnosticResponse(pipeline.executeDiagnostic(file))
 }

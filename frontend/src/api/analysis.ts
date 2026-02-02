@@ -101,3 +101,30 @@ export async function getAnalysis(id: string): Promise<AnalysisResult> {
 
   throw new Error("Failed to fetch analysis");
 }
+
+export type PriceSignal = {
+  uploadId: string;
+  tokens: string[];
+  prices: number[];
+  rawLine: string;
+};
+
+export type DiagnosticResponse = {
+  signals: PriceSignal[];
+};
+
+export async function diagnoseFile(file: File): Promise<DiagnosticResponse> {
+  const form = new FormData();
+  form.append("file", file);
+
+  const res = await fetch(`${API_BASE}/analysis/diagnose`, {
+    method: "POST",
+    body: form,
+  });
+
+  if (!res.ok) {
+    throw new Error("Upload failed");
+  }
+
+  return res.json();
+}

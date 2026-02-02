@@ -3,6 +3,7 @@ import "./App.css";
 
 import AnalysisPage from "./pages/AnalysisPage";
 import WineAnalyzerPage from "./pages/WineAnalyzerPage";
+import WineDiagnosisPage from "./pages/WineDiagnosisPage";
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
       <Routes>
         <Route path="/" element={<WineAnalyzerPage />} />
         <Route path="/winelist/:id" element={<AnalysisPage />} />
+        <Route path="/diagnose" element={<WineDiagnosisPage />} />
       </Routes>
     </BrowserRouter>
   );

@@ -3,6 +3,7 @@ package com.wineevaluator.document
 import com.wineevaluator.document.ingestion.DocumentParser
 import com.wineevaluator.document.interpretation.LineInterpreter
 import com.wineevaluator.document.model.DocumentFile
+import com.wineevaluator.document.model.PriceSignal
 import com.wineevaluator.document.persistence.PriceSignalRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -35,5 +36,10 @@ class DocumentProcessingPipeline(
         log.debug("document.interpreted signals={} uploadId={}", signals.size, file.id.value)
 
         repo.write(signals)
+    }
+
+    fun fileToSignals(file: DocumentFile): List<PriceSignal> {
+        val lines = parser.parse(file)
+        return lines.map { interpreter.interpret(file.id, it) }.filterNotNull()
     }
 }

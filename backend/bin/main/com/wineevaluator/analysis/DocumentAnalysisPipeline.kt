@@ -5,6 +5,7 @@ import com.wineevaluator.analysis.model.AnalysisRecord
 import com.wineevaluator.analysis.persistence.AnalysisRepository
 import com.wineevaluator.analysis.queue.DocumentProcessingQueue
 import com.wineevaluator.common.error.ValidationException
+import com.wineevaluator.document.model.PriceSignal
 import com.wineevaluator.upload.storage.UploadStorage
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
@@ -35,6 +36,18 @@ class StartAnalysisPipeline(
         return AnalysisRecord.started(id)
     }
 
+    fun executeDiagnostic(file: MultipartFile): List<PriceSignal> {
+        validateFile(file)
+        val id = AnalysisId.new()
+        val document =
+                storage.store(
+                        file.inputStream,
+                        id.toUploadId(),
+                        file.originalFilename ?: "upload",
+                )
+
+        return queue.processImmediate(document)
+    }
     private fun validateFile(file: MultipartFile) {
         val type = file.contentType ?: throw ValidationException("Missing Content-Type head")
         if (!(type.startsWith("image/") || type == MediaType.APPLICATION_PDF_VALUE)) {

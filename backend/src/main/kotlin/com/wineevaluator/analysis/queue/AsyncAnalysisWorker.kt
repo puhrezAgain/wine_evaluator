@@ -5,6 +5,7 @@ import com.wineevaluator.analysis.persistence.JpaAnalysisRepository
 import com.wineevaluator.common.error.DomainException
 import com.wineevaluator.document.DocumentProcessingPipeline
 import com.wineevaluator.document.model.DocumentFile
+import com.wineevaluator.document.model.PriceSignal
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
@@ -41,5 +42,9 @@ class AsyncAnalysisWorker(
 
             analysisRepository.markFailed(id, e.message ?: "Internal processing error")
         }
+    }
+
+    override fun processImmediate(documentFile: DocumentFile): List<PriceSignal> {
+        return pipeline.fileToSignals(documentFile)
     }
 }
