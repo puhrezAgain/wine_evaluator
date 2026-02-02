@@ -43,20 +43,27 @@ resource "google_project_iam_member" "ci_service_usage" {
   member  = "serviceAccount:${google_service_account.ci.email}"
 }
 
-resource "google_project_iam_member" "ci_artifacts" {
-  project = var.project_id
-  role    = "roles/artifactregistry.writer"
-  member  = "serviceAccount:${google_service_account.ci.email}"
+resource "google_artifact_registry_repository_iam_member" "ci_artifacts" {
+  repository = google_artifact_registry_repository.api.name
+  role       = "roles/artifactregistry.writer"
+  member     = "serviceAccount:${google_service_account.ci.email}"
 }
 
-resource "google_project_iam_member" "ci_storage" {
-  project = var.project_id
-  role    = "roles/storage.admin"
-  member  = "serviceAccount:${google_service_account.ci.email}"
+resource "google_storage_bucket_iam_member" "ci_storage" {
+  bucket = google_storage_bucket.spa.name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_service_account.ci.email}"
 }
 
 resource "google_project_iam_member" "ci_run" {
   project = var.project_id
-  role    = "roles/run.admin"
+  role    = "roles/run.developer"
   member  = "serviceAccount:${google_service_account.ci.email}"
+}
+
+
+resource "google_service_account_iam_member" "ci_backend" {
+  service_account_id = google_service_account.backend.name
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${google_service_account.ci.email}"
 }
