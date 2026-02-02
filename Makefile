@@ -87,7 +87,7 @@ infra-init:
 infra-bootstrap: infra-init
 	terraform -chdir=infra-bootstrap apply $(TF_VARS_COMMON)
 
-infra-app: infra-init guard-backend-sa api-image
+infra-app: infra-init api-image
 ifeq ($(CONFIRM),true)
 	terraform -chdir=infra-app apply $(TF_VARS_APP)
 else
@@ -107,7 +107,7 @@ deploy-backend:
 	@$(call resolve_backend_sa) \
 	$(MAKE) infra-app BACKEND_SA="$$BACKEND_SA_ENV"
 
-deploy: check-auth confirm infra-init deploy-backend deploy-frontend
+deploy: check-auth confirm deploy-backend deploy-frontend
 
 provision-and-deploy:
 	@echo "⚠️  This provisions IAM and infrastructure. Admin use only."
