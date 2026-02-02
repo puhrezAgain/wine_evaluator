@@ -6,7 +6,10 @@ import com.wineevaluator.analysis.model.AnalysisStatus
 import com.wineevaluator.analysis.persistence.AnalysisRepository
 import com.wineevaluator.common.error.NotFoundException
 import com.wineevaluator.wine.WineQueryHandler
+import com.wineevaluator.wine.matching.MatchStrategy
 import org.springframework.stereotype.Component
+
+private val DEFAULT_MATCH_STRATEGY = MatchStrategy.BEST
 
 @Component
 class AnalysisReader(
@@ -21,7 +24,7 @@ class AnalysisReader(
             AnalysisStatus.PENDING -> AnalysisResultView.Pending(id)
             AnalysisStatus.FAILED -> AnalysisResultView.Failed(id, record.error)
             AnalysisStatus.DONE ->
-                    wineQuerier.queryByUploadId(id.toUploadId()).let {
+                    wineQuerier.queryByUploadId(id.toUploadId(), DEFAULT_MATCH_STRATEGY).let {
                         AnalysisResultView.Done(id, it)
                     }
         }

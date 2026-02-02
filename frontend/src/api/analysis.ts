@@ -1,20 +1,28 @@
 export const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 
-export type WineMatch = {
-  queryUploadId: string;
-  jaccard: number;
-  price: number;
-  referencePrice: number;
-  delta: number;
-  deltaPercent: number;
-  matchTokens: string[];
-  tokens: string[];
-};
+export type WineResult =
+  | {
+      queryUploadId: string;
+      jaccard: number;
+      price: number;
+      referencePrice: number;
+      delta: number;
+      deltaPercent: number;
+      matchTokens: string[];
+      tokens: string[];
+      type: "MATCH";
+    }
+  | {
+      queryUploadId: string;
+      tokens: string[];
+      price: number;
+      type: "NEW_WINE";
+    };
 
 export type WineQueryResponse = {
   original: string;
   queryPrice: number;
-  matches: WineMatch[];
+  matches: WineResult[];
 };
 
 export async function analyzeWine(
@@ -72,7 +80,7 @@ export type AnalysisResult =
   | {
       id: string;
       status: "DONE";
-      results: WineMatch[];
+      results: WineResult[];
     };
 
 export async function getAnalysis(id: string): Promise<AnalysisResult> {

@@ -1,6 +1,6 @@
 package com.wineevaluator.analysis.model
 
-import com.wineevaluator.wine.model.WineMatch
+import com.wineevaluator.wine.model.WineResult
 
 sealed interface AnalysisResultView {
         val id: AnalysisId
@@ -16,6 +16,6 @@ sealed interface AnalysisResultView {
 
         data class Done(
                 override val id: AnalysisId,
-                val results: List<WineMatch>,
+                val results: List<WineResult>,
         ) : AnalysisResultView
 }
