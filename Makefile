@@ -6,6 +6,7 @@ REGION ?= europe-west1
 
 CONFIRM ?= true
 ENV ?= dev
+API_BASE ?=
 
 BACKEND_NAME = wine-evaluator-api-$(ENV)
 FRONTEND_NAME = wine-ui-$(ENV)
@@ -36,9 +37,10 @@ TF_VARS_APP = \
 
 .PHONY: help dev build \
 	build-frontend build-backend api-image \
-	infra-bootstrap infra-app \
+	infra-init infra-bootstrap infra-app \
 	deploy deploy-backend sync-frontend deploy-frontend provision-and-deploy \
-	status logs-backend check-auth open-frontend confirm
+	status logs-backend check-auth open-frontend confirm \
+	guard-spa-bucket guard-backend-sa guard-api-base
 
 help:
 	@echo ""
@@ -64,9 +66,8 @@ dev:
 
 build: build-frontend build-backend
 
-build-frontend:
+build-frontend: guard-api-base
 	cd frontend && npm ci
-	$(eval API_BASE := $(shell terraform -chdir=infra-app output -raw api_url))
 	@echo "Building frontend with API_BASE=$(API_BASE)"
 	cd frontend && VITE_API_BASE="$(API_BASE)" npm run build
 
@@ -81,12 +82,14 @@ api-image: build-backend
 # =========================
 # Infrastructure
 # =========================
-infra-bootstrap:
-	terraform -chdir=infra-bootstrap init
+infra-init:
+	terraform -chdir=infra-bootstrap init -reconfigure
+	terraform -chdir=infra-app init -reconfigure
+
+infra-bootstrap: infra-init
 	terraform -chdir=infra-bootstrap apply $(TF_VARS_COMMON)
 
-infra-app: guard-backend-sa api-image
-	terraform -chdir=infra-app init
+infra-app: infra-init guard-backend-sa api-image
 ifeq ($(CONFIRM),true)
 	terraform -chdir=infra-app apply $(TF_VARS_APP)
 else
@@ -115,8 +118,7 @@ open-frontend:
 # =========================
 # Deploy
 # =========================
-sync-frontend:
-	$(eval SPA_BUCKET := $(shell terraform -chdir=infra-bootstrap output -raw spa_bucket_name))
+sync-frontend: guard-spa-bucket
 	gsutil -m rsync -r -d frontend/dist gs://$(SPA_BUCKET)
 
 deploy-frontend: build-frontend sync-frontend
@@ -133,7 +135,7 @@ provision-and-deploy:
 # =========================
 # Guards
 # =========================
-guard-backend-sa:
+guard-backend-sa: infra-init
 ifndef BACKEND_SA
 	@echo "Resolving BACKEND_SA from terraform output..."
 	$(eval BACKEND_SA := $(shell terraform -chdir=infra-bootstrap output -raw backend_service_account_email))
@@ -142,6 +144,27 @@ endif
 ifndef BACKEND_SA
 	$(error BACKEND_SA is not set and infra-bootstrap has not been applied)
 endif
+
+
+guard-spa-bucket: infra-init
+ifndef SPA_BUCKET
+	$(eval SPA_BUCKET := $(shell terraform -chdir=infra-bootstrap output -raw spa_bucket_name))
+endif
+
+ifndef SPA_BUCKET
+	$(error SPA_BUCKET not resolved; run infra-bootstrap first)
+endif
+
+guard-api-base: infra-init
+ifndef API_BASE
+	$(eval API_BASE := $(shell terraform -chdir=infra-app output -raw api_url))
+endif
+
+ifndef API_BASE
+	$(error API_BASE not resolved; run infra-app first)
+endif
+
+
 
 ifeq ($(CONFIRM),true)
 confirm:
