@@ -2,6 +2,10 @@ resource "google_cloud_run_service" "api" {
   name     = "wine-evaluator-api-${var.env}"
   location = var.region
 
+  lifecycle {
+    prevent_destroy = true
+  }
+
   template {
     spec {
       service_account_name = var.backend_service_account_email

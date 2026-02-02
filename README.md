@@ -7,24 +7,26 @@ users instantly check whether a specific wine is fairly priced.
 ## Development
 
 Requirements:
+
 - Node 18+
 - Java 17+
 
 Run everything:
+
 ```bash
 npm install
 npm run dev
 ```
 
-
 ## App Flow
 
 Two main use cases:
+
 1. List Check: Analyze an entire menu and get analysis on it.
 2. Wine Check: Analyze a single wine.make
 
-
 ### List Check
+
 ```
 Consumer App
    │
@@ -44,7 +46,6 @@ Consumer App
    │ • fair / overpriced / deal
    │ • reference prices
 ```
-
 
 ### Wine Check
 
@@ -79,12 +80,14 @@ Check an entire wine list (PDF or image).
 `POST /analysis`
 
 Upload a wine list and start analysis.
+
 ```
 curl -X POST /analysis \
   -F "file=@winelist.pdf"
 ```
 
 Response — 202 Accepted
+
 ```
 {
   "record": {
@@ -93,17 +96,19 @@ Response — 202 Accepted
   }
 }
 ```
+
 `GET /analysis/{id}`
 
 Poll for results.
 
-* `202 Accepted` → still processing
+- `202 Accepted` → still processing
 
-* `200 OK` → analysis complete
+- `200 OK` → analysis complete
 
-* `422 Unprocessable` → analysis failed
+- `422 Unprocessable` → analysis failed
 
 Done response
+
 ```
 {
   "id": "analysis-id",
@@ -116,6 +121,7 @@ Done response
   ]
 }
 ```
+
 ### 🍷 Single Wine Check (Sync)
 
 Instantly check one wine price.
@@ -123,6 +129,7 @@ Instantly check one wine price.
 `POST /analysis`
 
 Send wine name and menu price.
+
 ```
 curl -X POST /analysis \
   -H "Content-Type: application/json" \
@@ -130,6 +137,7 @@ curl -X POST /analysis \
 ```
 
 Response — `200 OK`
+
 ```
 {
   "original": "Viña Tondonia Reserva 2011",
@@ -142,26 +150,29 @@ Response — `200 OK`
   ]
 }
 ```
+
 Summary
+
 ```
 POST /analysis (file) → check wine list (async)
 POST /analysis (json) → check single wine (sync)
 GET  /analysis/{id}   → retrieve wine list results
 ```
+
 Notes
 
-* Wine list checks return results for that list
-* Observed prices are stored and reused
-* Single wine checks are read-only and immediate
+- Wine list checks return results for that list
+- Observed prices are stored and reused
+- Single wine checks are read-only and immediate
 
 ## Deployment
 
 This project uses **Terraform for infrastructure** and **Make for deployments**.
 
 **Rule of thumb**
+
 - Infrastructure changes → run Terraform (rare)
 - Frontend updates → sync static files (often)
-
 
 ### Prerequisites
 
@@ -171,8 +182,17 @@ This project uses **Terraform for infrastructure** and **Make for deployments**.
 - `gcloud` CLI (authenticated to the project)
 - Access to the GCP project
 
+### Terraform State
+
+This project uses a remote GCS backend.
+
+Before running Terraform for the first time, an admin must create
+the state bucket:
+
+gs://wine-evaluator-tfstate
 
 ### Infrastructure
+
 ---
 
 Provision or update all GCP resources and deploy both frontend and backend:
@@ -181,12 +201,11 @@ Provision or update all GCP resources and deploy both frontend and backend:
 make provision-and-deploy
 ```
 
-
 ### Backend API
+
 ---
 
 Update the image used by cloud run:
-
 
 ```bash
 make deploy-backend
@@ -194,8 +213,8 @@ make deploy-backend
 
 Images are tagged with the current git commit SHA.
 
-
 ### Frontend
+
 ---
 
 Build and deploy the SPA:
@@ -207,10 +226,12 @@ make deploy-frontend
 This builds the frontend and syncs static files to Cloud Storage.
 No Terraform apply is required.
 
-
 ### Access the app
+
 ---
+
 Open the frontend in your browser:
+
 ```bash
 make open-frontend
 ```
