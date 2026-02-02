@@ -19,57 +19,62 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 
 class AnalysisControllerTest {
-    private lateinit var mockMvc: MockMvc
+        private lateinit var mockMvc: MockMvc
 
-    private val analyzer = mockk<Analyzer>()
-    private val analysisReader = mockk<AnalysisReader>()
-    private val objectMapper = ObjectMapper()
+        private val analyzer = mockk<Analyzer>()
+        private val analysisReader = mockk<AnalysisReader>()
+        private val objectMapper = ObjectMapper()
 
-    @BeforeEach
-    fun setUp() {
-        val controller = AnalysisController(analyzer, analysisReader)
+        @BeforeEach
+        fun setUp() {
+                val controller = AnalysisController(analyzer, analysisReader)
 
-        mockMvc =
-                MockMvcBuilders.standaloneSetup(controller)
-                        .setControllerAdvice(ApiExceptionHandler())
-                        .build()
-    }
+                mockMvc =
+                        MockMvcBuilders.standaloneSetup(controller)
+                                .setControllerAdvice(ApiExceptionHandler())
+                                .build()
+        }
 
-    @Test
-    fun `POST analysis query returns 200`() {
-        val query = WineQueryRequest("Viña Tondonía", 48f)
-        val response =
-                AnalysisResponse.AnalysisImmediate(
-                        results =
-                                WineQueryResponse(
-                                        original = query.wine,
-                                        queryPrice = query.price,
-                                        matches = emptyList()
-                                )
-                )
-        every { analyzer.query(query) } returns response
+        @Test
+        fun `POST analysis query returns 200`() {
+                val query = WineQueryRequest("Viña Tondonía", 48f)
+                val response =
+                        AnalysisResponse.AnalysisImmediate(
+                                results =
+                                        WineQueryResponse(
+                                                original = query.wine,
+                                                queryPrice = query.price,
+                                                matches = emptyList()
+                                        )
+                        )
+                every { analyzer.query(query) } returns response
 
-        val content = objectMapper.writeValueAsString(query)
+                val content = objectMapper.writeValueAsString(query)
 
-        post("/analysis")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(content)
-                .let(mockMvc::perform)
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.results").exists())
-                .andExpect(jsonPath("$.results.original").value("Viña Tondonía"))
-    }
+                post("/analysis")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(content)
+                        .let(mockMvc::perform)
+                        .andExpect(status().isOk)
+                        .andExpect(jsonPath("$.results").exists())
+                        .andExpect(jsonPath("$.results.original").value("Viña Tondonía"))
+        }
 
-    @Test
-    fun `GET analysis returns 404 when not found`() {
-        val id = UUID.randomUUID()
+        @Test
+        fun `GET analysis returns 404 when not found`() {
+                val id = UUID.randomUUID()
 
-        every { analysisReader.getAnalysis(AnalysisId(id)) } throws
-                NotFoundException("Analysis not found")
+                every { analysisReader.getAnalysis(AnalysisId(id)) } throws
+                        NotFoundException("Analysis not found")
 
-        get("/analysis/$id")
-                .let(mockMvc::perform)
-                .andExpect(status().isNotFound)
-                .andExpect(jsonPath("$.code").value("NOT_FOUND"))
-    }
+                get("/analysis/$id")
+                        .let(mockMvc::perform)
+                        .andExpect(status().isNotFound)
+                        .andExpect(jsonPath("$.code").value("NOT_FOUND"))
+        }
+
+        @Test
+        fun `GET analysis returns 400 when ID is invalid`() {
+                get("/analysis/123").let(mockMvc::perform).andExpect(status().isBadRequest)
+        }
 }
