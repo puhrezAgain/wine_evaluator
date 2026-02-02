@@ -6,7 +6,6 @@ REGION ?= europe-west1
 
 CONFIRM ?= true
 ENV ?= dev
-BACKEND_SA ?= $(shell terraform -chdir=infra-bootstrap output -raw backend_service_account_email)
 
 BACKEND_NAME = wine-evaluator-api-$(ENV)
 FRONTEND_NAME = wine-ui-$(ENV)
@@ -134,6 +133,11 @@ provision-and-deploy:
 # Guards
 # =========================
 guard-backend-sa:
+ifndef BACKEND_SA
+	@echo "Resolving BACKEND_SA from terraform output..."
+	$(eval BACKEND_SA := $(shell terraform -chdir=infra-bootstrap output -raw backend_service_account_email))
+endif
+
 ifndef BACKEND_SA
 	$(error BACKEND_SA is not set and infra-bootstrap has not been applied)
 endif
