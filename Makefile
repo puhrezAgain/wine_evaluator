@@ -6,7 +6,6 @@ REGION ?= europe-west1
 
 CONFIRM ?= true
 ENV ?= dev
-API_BASE ?=
 
 BACKEND_NAME = wine-evaluator-api-$(ENV)
 FRONTEND_NAME = wine-ui-$(ENV)
@@ -40,7 +39,7 @@ TF_VARS_APP = \
 	infra-init infra-bootstrap infra-app \
 	deploy deploy-backend sync-frontend deploy-frontend provision-and-deploy \
 	status logs-backend check-auth open-frontend confirm \
-	guard-spa-bucket guard-backend-sa guard-api-base
+	guard-spa-bucket guard-backend-sa
 
 help:
 	@echo ""
@@ -66,10 +65,15 @@ dev:
 
 build: build-frontend build-backend
 
-build-frontend: guard-api-base
+build-frontend:
 	cd frontend && npm ci
-	@echo "Building frontend with API_BASE=$(API_BASE)"
-	cd frontend && VITE_API_BASE="$(API_BASE)" npm run build
+	@API_BASE_ENV="$(API_BASE)"; \
+	@if [ -z "$$API_BASE_ENV" ]; then \
+		echo "Resolving API_BASE from Terraform output..."; \
+		API_BASE_ENV=$$(terraform -chdir=infra-app output -raw api_url); \
+	fi; \
+	echo "Building frontend with API_BASE=$$API_BASE_ENV"; \
+	cd frontend && VITE_API_BASE="$$API_BASE_ENV" npm run build
 
 build-backend:
 	cd backend && ./gradlew clean bootJar --no-daemon
@@ -154,17 +158,6 @@ endif
 ifndef SPA_BUCKET
 	$(error SPA_BUCKET not resolved; run infra-bootstrap first)
 endif
-
-guard-api-base: infra-init
-ifndef API_BASE
-	$(eval API_BASE := $(shell terraform -chdir=infra-app output -raw api_url))
-endif
-
-ifndef API_BASE
-	$(error API_BASE not resolved; run infra-app first)
-endif
-
-
 
 ifeq ($(CONFIRM),true)
 confirm:
