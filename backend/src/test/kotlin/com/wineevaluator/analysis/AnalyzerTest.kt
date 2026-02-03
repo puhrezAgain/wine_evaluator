@@ -3,6 +3,8 @@ package com.wineevaluator.analysis
 import com.wineevaluator.analysis.model.AnalysisId
 import com.wineevaluator.analysis.model.AnalysisRecord
 import com.wineevaluator.analysis.model.AnalysisResponse
+import com.wineevaluator.analysis.model.DiagnosticResponse
+import com.wineevaluator.document.model.PriceSignal
 import com.wineevaluator.wine.WineQueryHandler
 import com.wineevaluator.wine.model.WineQueryRequest
 import io.mockk.*
@@ -48,5 +50,16 @@ class AnalyzerTest {
         assertTrue(response is AnalysisResponse.AnalysisStarted)
 
         verify(exactly = 1) { pipeline.execute(file) }
+    }
+
+    @Test
+    fun `diagnose delegates to pipeline and returns diagnostic response`() {
+        val diagnostics = listOf(mockk<PriceSignal>(relaxed = true))
+        val file = mockk<MultipartFile>(relaxed = true)
+        every { pipeline.executeDiagnostic(file) } returns diagnostics
+
+        val result = analyzer.diagnose(file)
+
+        assertEquals(DiagnosticResponse(diagnostics), result)
     }
 }

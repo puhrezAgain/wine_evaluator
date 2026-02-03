@@ -43,13 +43,13 @@ class StartAnalysisPipeline(
     fun executeDiagnostic(file: MultipartFile): List<PriceSignal> {
         validateFile(file)
         val id = AnalysisId.new()
+
         val document =
                 storage.storeTemp(
                         file.inputStream,
                         id.toUploadId(),
                         file.originalFilename ?: "upload",
                 )
-
         return try {
             queue.processImmediate(document)
         } finally {

@@ -24,6 +24,24 @@ class LineInterpreterTest {
     }
 
     @Test
+    fun `extracts strips decimal price`() {
+        val comma = interpreter.interpret(uploadId, "Viña Tondonia Reserva 45,5")
+        assertNotNull(comma)
+        assertEquals(listOf(45), comma!!.prices)
+
+        val decimal = interpreter.interpret(uploadId, "Viña Tondonia Reserva 48.5")
+        assertNotNull(decimal)
+        assertEquals(listOf(48), decimal!!.prices)
+    }
+
+    @Test
+    fun `extracts assume negative price is error`() {
+        val actual = interpreter.interpret(uploadId, "Viña Tondonia Reserva -55")
+        assertNotNull(actual)
+        assertEquals(listOf(55), actual!!.prices)
+    }
+
+    @Test
     fun `extracts multiple prices, excluding year`() {
         val actual = interpreter.interpret(uploadId, "Viña Tondonia Reserva 2010 45 48")
 

@@ -68,4 +68,56 @@ class DocumentProcessingPipelineTest {
 
         verify { repository wasNot Called }
     }
+
+    @Test
+    fun `process does not store data when no signals`() {
+        val document =
+                DocumentFile(
+                        UploadId(UUID.randomUUID()),
+                        "menu.pdf",
+                        Path.of("/tmp/menu.pdf"),
+                        Instant.now()
+                )
+
+        val parsedLines = listOf("nothign nothign")
+        every { parser.parse(document) } returns parsedLines
+        every { interpreter.interpret(document.id, parsedLines.first()) } returns null
+
+        pipeline.process(document)
+
+        verify { repository wasNot Called }
+    }
+
+    @Test
+    fun `fileToSignals calls parse and interpret without storing`() {
+        val document =
+                DocumentFile(
+                        UploadId(UUID.randomUUID()),
+                        "menu.pdf",
+                        Path.of("/tmp/menu.pdf"),
+                        Instant.now()
+                )
+
+        val parsedLines = listOf("Viña Tondonía 2011 35")
+
+        val signal =
+                PriceSignal(
+                        document.id,
+                        setOf("VINA", "TONDONIA", "2011"),
+                        listOf(35),
+                        "Viña Tondonía 2011 35"
+                )
+
+        every { parser.parse(document) } returns parsedLines
+        every { interpreter.interpret(document.id, parsedLines.first()) } returns signal
+
+        val results = pipeline.fileToSignals(document)
+
+        assertEquals(listOf(signal), results)
+        verify(exactly = 1) {
+            parser.parse(document)
+            interpreter.interpret(document.id, parsedLines.first())
+        }
+        verify { repository wasNot Called }
+    }
 }
