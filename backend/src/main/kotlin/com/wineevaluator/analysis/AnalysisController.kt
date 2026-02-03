@@ -3,6 +3,7 @@ package com.wineevaluator.analysis
 import com.wineevaluator.analysis.model.AnalysisId
 import com.wineevaluator.analysis.model.AnalysisResponse
 import com.wineevaluator.analysis.model.AnalysisResultView
+import com.wineevaluator.analysis.model.DiagnosticResponse
 import com.wineevaluator.wine.model.WineQueryRequest
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -48,4 +49,9 @@ class AnalysisController(
     fun analyzeFile(
             @RequestPart file: MultipartFile,
     ): ResponseEntity<AnalysisResponse> = ResponseEntity.accepted().body(analyzer.start(file))
+
+    @PostMapping("/diagnose", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun runFileDiagnostic(
+            @RequestPart file: MultipartFile,
+    ): ResponseEntity<DiagnosticResponse> = ResponseEntity.ok(analyzer.diagnose(file))
 }

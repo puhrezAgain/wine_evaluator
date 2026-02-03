@@ -8,6 +8,7 @@ import com.wineevaluator.analysis.persistence.AnalysisRepository
 import com.wineevaluator.common.error.NotFoundException
 import com.wineevaluator.common.value.UploadId
 import com.wineevaluator.wine.WineQueryHandler
+import com.wineevaluator.wine.matching.MatchStrategy
 import com.wineevaluator.wine.model.WineMatch
 import io.mockk.*
 import java.util.UUID
@@ -67,7 +68,7 @@ class AnalysisReaderTest {
     }
 
     @Test
-    fun `retruns Done view and queries by uploadId when status is DONE`() {
+    fun `returns Done view and queries by uploadId with best strategy when status is DONE`() {
         val id = AnalysisId(UUID.randomUUID())
         val uploadId = id.toUploadId()
 
@@ -81,12 +82,12 @@ class AnalysisReaderTest {
                                 delta = 16,
                                 deltaPercent = 50.0,
                                 matchTokens = setOf("VINA", "TONDONIA"),
-                                tokens = setOf("VINA", "TONDONIA", "RESERVA")
+                                tokens = setOf("VINA", "TONDONIA", "RESERVA"),
                         )
                 )
         every { repo.find(id) } returns AnalysisRecord(id, AnalysisStatus.DONE)
 
-        every { wineQuerier.queryByUploadId(uploadId) } returns matches
+        every { wineQuerier.queryByUploadId(uploadId, any()) } returns matches
 
         val view = reader.getAnalysis(id)
 
@@ -95,6 +96,6 @@ class AnalysisReaderTest {
         assertEquals(id, done.id)
         assertEquals(matches, done.results)
 
-        verify(exactly = 1) { wineQuerier.queryByUploadId(uploadId) }
+        verify(exactly = 1) { wineQuerier.queryByUploadId(uploadId, MatchStrategy.BEST) }
     }
 }

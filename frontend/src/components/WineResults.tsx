@@ -1,7 +1,7 @@
-import type { WineMatch } from "../api/analysis";
+import type { WineResult } from "../api/analysis";
 
 interface Props {
-  matches: WineMatch[];
+  matches: WineResult[];
 }
 
 export function WineResults({ matches }: Props) {
@@ -13,6 +13,7 @@ export function WineResults({ matches }: Props) {
     <table>
       <thead>
         <tr>
+          <th>Match</th>
           <th>Ref Price</th>
           <th>Your Price</th>
           <th>Diff €</th>
@@ -21,15 +22,18 @@ export function WineResults({ matches }: Props) {
         </tr>
       </thead>
       <tbody>
-        {matches.map((m, i) => (
-          <tr key={i}>
-            <td>{m.referencePrice} €</td>
-            <td>{m.price} €</td>
-            <td>{m.delta} €</td>
-            <td>{m.deltaPercent.toFixed(1)} %</td>
-            <td>{Math.round(m.jaccard * 100)}%</td>
-          </tr>
-        ))}
+        {matches
+          .filter((m) => m.type === "MATCH")
+          .map((m, i) => (
+            <tr key={i}>
+              <td>{Array.from(m.matchTokens).join(" ")}</td>
+              <td>{m.referencePrice} €</td>
+              <td>{m.price} €</td>
+              <td>{m.delta} €</td>
+              <td>{m.deltaPercent.toFixed(1)} %</td>
+              <td>{Math.round(m.jaccard * 100)}%</td>
+            </tr>
+          ))}
       </tbody>
     </table>
   );

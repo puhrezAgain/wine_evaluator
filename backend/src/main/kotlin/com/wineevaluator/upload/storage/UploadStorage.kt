@@ -10,4 +10,10 @@ interface UploadStorage {
             uploadId: UploadId,
             filename: String,
     ): DocumentFile
+
+    fun storeTemp(
+            input: InputStream,
+            uploadId: UploadId,
+            filename: String,
+    ): DocumentFile
 }

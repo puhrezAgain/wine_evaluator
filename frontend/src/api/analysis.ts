@@ -1,20 +1,28 @@
 export const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 
-export type WineMatch = {
-  queryUploadId: string;
-  jaccard: number;
-  price: number;
-  referencePrice: number;
-  delta: number;
-  deltaPercent: number;
-  matchTokens: string[];
-  tokens: string[];
-};
+export type WineResult =
+  | {
+      queryUploadId: string;
+      jaccard: number;
+      price: number;
+      referencePrice: number;
+      delta: number;
+      deltaPercent: number;
+      matchTokens: string[];
+      tokens: string[];
+      type: "MATCH";
+    }
+  | {
+      queryUploadId: string;
+      tokens: string[];
+      price: number;
+      type: "NEW_WINE";
+    };
 
 export type WineQueryResponse = {
   original: string;
   queryPrice: number;
-  matches: WineMatch[];
+  matches: WineResult[];
 };
 
 export async function analyzeWine(
@@ -72,7 +80,7 @@ export type AnalysisResult =
   | {
       id: string;
       status: "DONE";
-      results: WineMatch[];
+      results: WineResult[];
     };
 
 export async function getAnalysis(id: string): Promise<AnalysisResult> {
@@ -92,4 +100,31 @@ export async function getAnalysis(id: string): Promise<AnalysisResult> {
   }
 
   throw new Error("Failed to fetch analysis");
+}
+
+export type PriceSignal = {
+  uploadId: string;
+  tokens: string[];
+  prices: number[];
+  rawLine: string;
+};
+
+export type DiagnosticResponse = {
+  signals: PriceSignal[];
+};
+
+export async function diagnoseFile(file: File): Promise<DiagnosticResponse> {
+  const form = new FormData();
+  form.append("file", file);
+
+  const res = await fetch(`${API_BASE}/analysis/diagnose`, {
+    method: "POST",
+    body: form,
+  });
+
+  if (!res.ok) {
+    throw new Error("Upload failed");
+  }
+
+  return res.json();
 }

@@ -16,7 +16,7 @@ fun tokenizeLine(
         )
 
 fun tokenize(input: String): List<String> =
-        Regex("""[A-Za-zÀ-ÿ0-9]+""").findAll(input).map { it.value }.map(::normalize).toList()
+        Regex("""[A-Za-zÀ-ÿ0-9,.]+""").findAll(input).map { it.value }.map(::normalize).toList()
 
 private fun normalize(row: String): String =
         row.replace(Regex("[·…]+"), " ").replace(Regex("\\s+"), " ").trim()

@@ -1,7 +1,7 @@
-import type { WineMatch } from "../../api/analysis";
+import type { WineResult } from "../../api/analysis";
 
 interface DoneStateProps {
-  results: WineMatch[];
+  results: WineResult[];
 }
 
 export function DoneState({ results }: DoneStateProps) {
@@ -15,6 +15,7 @@ export function DoneState({ results }: DoneStateProps) {
       <table>
         <thead>
           <tr>
+            <th>Wine</th>
             <th>Match</th>
             <th>List Price</th>
             <th>Market Price</th>
@@ -24,10 +25,24 @@ export function DoneState({ results }: DoneStateProps) {
         <tbody>
           {results.map((r, i) => (
             <tr key={i}>
-              <td>{Array.from(r.matchTokens).join(" ")}</td>
-              <td>{r.price} €</td>
-              <td>{r.referencePrice} €</td>
-              <td>{r.deltaPercent.toFixed(1)}%</td>
+              <td>{Array.from(r.tokens).join(" ")}</td>
+              {r.type === "MATCH" ? (
+                <>
+                  <td>{Array.from(r.matchTokens).join(" ")}</td>
+                  <td>{r.price} €</td>
+                  <td>{r.delta} €</td>
+                  <td>{r.deltaPercent.toFixed(1)}%</td>
+                </>
+              ) : (
+                <>
+                  <td>
+                    <sup>New Wine!</sup>
+                  </td>
+                  <td>{r.price} €</td>
+                  <td>N/A</td>
+                  <td>N/A</td>
+                </>
+              )}
             </tr>
           ))}
         </tbody>

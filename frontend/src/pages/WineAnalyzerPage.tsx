@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { analyzeWine, type WineMatch } from "../api/analysis";
+import { analyzeWine, type WineResult } from "../api/analysis";
 import { WineListUpload } from "../components/analysis/WineListUpload";
 import { WineQueryForm } from "../components/analysis/WineQueryForm";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { WineResults } from "../components/WineResults";
 
 export default function WineAnalyzerPage() {
-  const [matches, setMatches] = useState<WineMatch[]>([]);
+  const [matches, setMatches] = useState<WineResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
