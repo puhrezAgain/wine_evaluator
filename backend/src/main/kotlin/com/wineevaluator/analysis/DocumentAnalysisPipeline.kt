@@ -7,9 +7,13 @@ import com.wineevaluator.analysis.queue.DocumentProcessingQueue
 import com.wineevaluator.common.error.ValidationException
 import com.wineevaluator.document.model.PriceSignal
 import com.wineevaluator.upload.storage.UploadStorage
+import java.nio.file.Files
+import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.multipart.MultipartFile
+
+private val log = LoggerFactory.getLogger(StartAnalysisPipeline::class.java)
 
 @Component
 class StartAnalysisPipeline(
@@ -40,13 +44,19 @@ class StartAnalysisPipeline(
         validateFile(file)
         val id = AnalysisId.new()
         val document =
-                storage.store(
+                storage.storeTemp(
                         file.inputStream,
                         id.toUploadId(),
                         file.originalFilename ?: "upload",
                 )
 
-        return queue.processImmediate(document)
+        return try {
+            queue.processImmediate(document)
+        } finally {
+            runCatching { Files.deleteIfExists(document.path) }.onFailure {
+                log.warn("Failed to delete temp document {}", document.path, it)
+            }
+        }
     }
     private fun validateFile(file: MultipartFile) {
         val type = file.contentType ?: throw ValidationException("Missing Content-Type head")
